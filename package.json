@@ -1,0 +1,18 @@
+{
+  "author": "Savin Pathirana",
+  "description": "Coursework 1 -  Advanced Server-Side Web Programming",
+  "student id": "w1985684/20222009",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "scripts": {
+  "dev": "nodemon src/app.js",
+  "start": "node src/app.js"
+}
+}
