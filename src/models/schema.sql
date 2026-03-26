@@ -1,4 +1,4 @@
--- Users Table
+--Users Table
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Profiles Table (1-to-1)
+--Profiles Table (1-to-1)
 CREATE TABLE profiles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNIQUE NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE profiles (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Degrees Table (1-to-Many for 3NF compliance)
+--Degrees Table (1-to-Many)
 CREATE TABLE degrees (
     id INT AUTO_INCREMENT PRIMARY KEY,
     profile_id INT NOT NULL,

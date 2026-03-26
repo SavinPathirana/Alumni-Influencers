@@ -12,7 +12,7 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Simple test to ensure the pool is working
+//Simple test to ensure the pool is working
 pool.getConnection()
     .then(connection => {
         console.log('Successfully connected to the MySQL database.');
