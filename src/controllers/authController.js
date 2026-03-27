@@ -142,9 +142,91 @@ const logout = async (req, res) => {
     });
 };
 
+const requestPasswordReset = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required.' });
+        }
+
+        //Generate a secure random token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+
+        //Update the user record with the token
+        const [result] = await pool.query(
+            `UPDATE users 
+             SET reset_token = ?, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 1 HOUR) 
+             WHERE email = ?`,
+            [resetToken, email]
+        );
+
+        if (result.affectedRows > 0) {
+            console.log(`Mock Email: Password reset link: /reset-password?token=${resetToken}`);
+        }
+
+        res.status(200).json({ 
+            message: 'If an account with that email exists, a password reset link has been sent.' 
+        });
+
+    } catch (error) {
+        console.error('Password Reset Request Error:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ error: 'Token and new password are required.' });
+        }
+
+        //Validate the new password
+        if (!isStrongPassword(newPassword)) {
+            return res.status(400).json({ error: 'Password does not meet strength requirements.' });
+        }
+
+        //Find the user with this token
+        const [users] = await pool.query(
+            `SELECT id FROM users 
+             WHERE reset_token = ? AND reset_token_expiry > NOW()`,
+            [token]
+        );
+
+        if (users.length === 0) {
+            return res.status(400).json({ error: 'Invalid or expired password reset token.' });
+        }
+
+        const user = users[0];
+
+        //Hash the new password
+        const saltRounds = 12;
+        const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+        //Update the password
+        await pool.query(
+            `UPDATE users 
+             SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL 
+             WHERE id = ?`,
+            [passwordHash, user.id]
+        );
+
+        res.status(200).json({ message: 'Password has been successfully reset. You can now log in.' });
+
+    } catch (error) {
+        console.error('Password Reset Error:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+};
+
 module.exports = {
     register,
     verifyEmail,
     login,
-    logout
+    logout,
+    requestPasswordReset,
+    resetPassword
+    
 };
