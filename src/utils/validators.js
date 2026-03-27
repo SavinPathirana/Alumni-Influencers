@@ -11,7 +11,18 @@ const isStrongPassword = (password) => {
     return passwordRegex.test(password);
 };
 
+//URL validation
+const isValidUrl = (urlString) => {
+    try {
+        new URL(urlString);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
+
 module.exports = {
     isValidUniversityEmail,
-    isStrongPassword
+    isStrongPassword,
+    isValidUrl
 };
