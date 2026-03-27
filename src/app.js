@@ -6,19 +6,19 @@ require('./config/db');
 
 const app = express();
 
-//Security Middlewares
+//Security middlewares
 app.use(helmet()); //Sets secure HTTP response headers
 app.use(cors());
 app.use(express.json()); //Parse JSON payloads
 
-//Health Check Endpoint
+//Health check endpoint
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'success', message: 'Alumni API is running securely.' });
 });
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
-//Server Initialization
+//Server initialization
 const PORT = process.env.PORT || 3000;
 if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, () => {
