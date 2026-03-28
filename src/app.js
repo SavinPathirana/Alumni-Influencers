@@ -16,7 +16,11 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'success', message: 'Alumni API is running securely.' });
 });
 const authRoutes = require('./routes/authRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/profiles', profileRoutes);
+app.use('/uploads', express.static('uploads'));
 
 //Server initialization
 const PORT = process.env.PORT || 3000;
