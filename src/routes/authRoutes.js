@@ -15,7 +15,8 @@ const authController = require('../controllers/authController');
  *   post:
  *     summary: Register a new alumni account
  *     tags: [Authentication]
- *     security: []
+ *     security:
+ *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -54,7 +55,8 @@ router.post('/register', authController.register);
  *   get:
  *     summary: Verify a user's email address
  *     tags: [Authentication]
- *     security: []
+ *     security:
+ *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: token
@@ -76,7 +78,8 @@ router.get('/verify/:token', authController.verifyEmail);
  *   post:
  *     summary: Log in to the platform
  *     tags: [Authentication]
- *     security: []
+ *     security:
+ *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -121,7 +124,8 @@ router.post('/logout', authController.logout);
  *   post:
  *     summary: Request a password reset link
  *     tags: [Authentication]
- *     security: []
+ *     security:
+ *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -146,7 +150,8 @@ router.post('/forgot-password', authController.requestPasswordReset);
  *   post:
  *     summary: Reset password using a token
  *     tags: [Authentication]
- *     security: []
+ *     security:
+ *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:

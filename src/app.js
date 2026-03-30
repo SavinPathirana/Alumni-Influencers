@@ -6,6 +6,8 @@ require('./config/db');
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+const apiLimiter = require('./middlewares/rateLimiter');
+const requireApiKey = require('./middlewares/apiKeyAuth');
 
 const app = express();
 
@@ -20,7 +22,8 @@ app.use(express.json()); //Parse JSON payloads
  *   get:
  *     summary: Check API health status
  *     description: Returns a success message if the API is running correctly.
- *     security: [] 
+ *     security:
+ *       - ApiKeyAuth: []
  *     responses:
  *       200:
  *         description: Successful response
@@ -43,6 +46,9 @@ app.get('/api/health', (req, res) => {
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const biddingRoutes = require('./routes/biddingRoutes');
+
+app.use('/api', apiLimiter);
+app.use('/api', requireApiKey);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth', authRoutes);

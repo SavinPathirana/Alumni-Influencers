@@ -21,10 +21,22 @@ const options = {
                     scheme: 'bearer',
                     bearerFormat: 'JWT',
                 },
+                ApiKeyAuth: {
+                    type: 'apiKey',
+                    in: 'header',
+                    name: 'x-api-key',
+                    description: 'Enter the AR Client API Key here'
+                }
             },
         },
+        
         //Apply the security to all routes 
-        security: [{ bearerAuth: [] }], 
+        security: [
+            { 
+                bearerAuth: [] ,
+                ApiKeyAuth: [] 
+            }      
+        ], 
     },
     //This tells Swagger where to look for the comments that document your routes
     apis: ['./src/routes/*.js', './src/app.js'], 

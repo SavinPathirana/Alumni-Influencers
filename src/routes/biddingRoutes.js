@@ -19,6 +19,9 @@ router.use(authenticateToken);
  *   post:
  *     summary: Place a blind bid for a future date
  *     tags: [Bidding]
+ *     security:
+ *       - bearerAuth: []
+ *         ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -50,6 +53,9 @@ router.post('/', biddingController.placeBid);
  *   get:
  *     summary: Get logged-in user's bid history
  *     tags: [Bidding]
+ *     security:
+ *       - bearerAuth: []
+ *         ApiKeyAuth: []
  *     responses:
  *       200:
  *         description: List of user's bids
@@ -64,6 +70,7 @@ router.get('/me', biddingController.getMyBids);
  *     tags: [Bidding]
  *     security:
  *       - bearerAuth: []
+ *         ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
