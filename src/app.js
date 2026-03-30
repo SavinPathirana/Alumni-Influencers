@@ -49,6 +49,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/bids', biddingRoutes);
+require('./utils/cronJobs');
 
 //Server initialization
 const PORT = process.env.PORT || 3000;
