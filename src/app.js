@@ -8,6 +8,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const apiLimiter = require('./middlewares/rateLimiter');
 const requireApiKey = require('./middlewares/apiKeyAuth');
+const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
@@ -64,5 +65,14 @@ if (process.env.NODE_ENV !== 'test') {
         console.log(`Server running on port ${PORT}`);
     });
 }
+
+app.use((req, res, next) => {
+    const error = new Error(`Route not found: ${req.originalUrl}`);
+    error.statusCode = 404;
+    next(error);
+});
+
+// The Global Error Handler
+app.use(errorHandler);
 
 module.exports = app;

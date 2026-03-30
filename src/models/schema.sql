@@ -8,7 +8,7 @@ CREATE TABLE users (
     is_verified BOOLEAN DEFAULT FALSE,
     verification_token VARCHAR(255) NULL,
     reset_token VARCHAR(255) NULL,
-    reset_token_expiry DATETIME NULL
+    reset_token_expiry DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
