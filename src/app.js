@@ -13,7 +13,7 @@ const errorHandler = require('./middlewares/errorHandler');
 const app = express();
 
 //Security middlewares
-app.use(helmet()); //Sets secure HTTP response headers
+app.use(helmet()); //Secure HTTP response headers
 app.use(cors());
 app.use(express.json()); //Parse JSON payloads
 
@@ -40,22 +40,21 @@ app.use(express.json()); //Parse JSON payloads
  *                   type: string
  *                   example: Alumni API is running securely.
  */
+
 //Health check endpoint
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'success', message: 'Alumni API is running securely.' });
 });
-const authRoutes = require('./routes/authRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const biddingRoutes = require('./routes/biddingRoutes');
 
 app.use('/api', apiLimiter);
 app.use('/api', requireApiKey);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use('/api/auth', authRoutes);
-app.use('/api/profiles', profileRoutes);
 app.use('/uploads', express.static('uploads'));
-app.use('/api/bids', biddingRoutes);
+
+//Load controllers
+require('./lib/boot')(app, { verbose: !module.parent });
+
 require('./utils/cronJobs');
 
 //Server initialization
@@ -72,7 +71,7 @@ app.use((req, res, next) => {
     next(error);
 });
 
-// The Global Error Handler
+//The Error Handler
 app.use(errorHandler);
 
 module.exports = app;
