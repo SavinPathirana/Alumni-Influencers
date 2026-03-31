@@ -29,17 +29,17 @@ const options = {
                 }
             },
         },
-        
-        //Apply the security to all routes 
+
+        //Apply security to all routes 
         security: [
-            { 
-                bearerAuth: [] ,
-                ApiKeyAuth: [] 
-            }      
-        ], 
+            {
+                bearerAuth: [],
+                ApiKeyAuth: []
+            }
+        ],
     },
-    //This tells Swagger where to look for the comments that document your routes
-    apis: ['./src/routes/*.js', './src/app.js'], 
+    //Swagger routes locations
+    apis: ['./src/controllers/*/index.js', './src/app.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
