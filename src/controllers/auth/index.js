@@ -258,13 +258,13 @@ const resetPassword = async (req, res) => {
  *                 example: student@my.westminster.ac.uk
  *               password:
  *                 type: string
- *                 example: StrongPass1!
+ *                 example: Password@123
  *               first_name:
  *                 type: string
- *                 example: Jane
+ *                 example: Firstname
  *               last_name:
  *                 type: string
- *                 example: Doe
+ *                 example: Lastname
  *     responses:
  *       201:
  *         description: Registration successful. Verification email sent.
@@ -319,7 +319,7 @@ router.get('/verify/:token', verifyEmail);
  *                 example: student@my.westminster.ac.uk
  *               password:
  *                 type: string
- *                 example: StrongPass1!
+ *                 example: Password@123
  *     responses:
  *       200:
  *         description: Login successful. Returns a JWT token.
@@ -391,7 +391,7 @@ router.post('/forgot-password', requestPasswordReset);
  *                 description: Token received from the forgot-password email
  *               newPassword:
  *                 type: string
- *                 example: NewStrongPass2@
+ *                 example: NewPassword@123
  *     responses:
  *       200:
  *         description: Password reset successfully.
