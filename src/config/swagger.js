@@ -30,7 +30,7 @@ const options = {
             },
         },
 
-        //Apply security to all routes 
+        //Apply security to all routes
         security: [
             {
                 bearerAuth: [],

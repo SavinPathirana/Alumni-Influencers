@@ -17,6 +17,20 @@ app.use(helmet()); //Secure HTTP response headers
 app.use(cors());
 app.use(express.json()); //Parse JSON payloads
 
+//XSS Protections
+app.use((req, res, next) => {
+    if (req.body) {
+        for (let key in req.body) {
+            if (typeof req.body[key] === 'string') {
+                req.body[key] = req.body[key].replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                    .replace(/javascript\s*:/gi, '')
+                    .replace(/on\w+\s*=/gi, ''); //Strip inline handlers
+            }
+        }
+    }
+    next();
+});
+
 /**
  * @swagger
  * /api/health:
