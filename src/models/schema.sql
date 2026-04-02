@@ -83,3 +83,23 @@ CREATE TABLE bids (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+--API Keys Table
+CREATE TABLE api_keys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    key_value VARCHAR(64) UNIQUE NOT NULL,
+    client_name VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    revoked_at DATETIME NULL
+);
+
+--API Usage Logs Table
+CREATE TABLE api_usage_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_key_id INT NOT NULL,
+    endpoint VARCHAR(255) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (api_key_id) REFERENCES api_keys(id) ON DELETE CASCADE
+);
