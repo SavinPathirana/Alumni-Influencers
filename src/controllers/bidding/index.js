@@ -36,7 +36,7 @@ const placeBid = async (req, res) => {
             return res.status(400).json({ error: 'Bids can only be placed for future dates.' });
         }
 
-        //3-Win Monthly Limit Rule (with event bonus support)
+        //3-Win Monthly Limit Rule
         const [winCheck] = await pool.query(
             `SELECT COUNT(*) as winCount 
              FROM bids 
@@ -107,8 +107,8 @@ const updateBid = async (req, res) => {
 
         //Can only increase the bid amount
         if (bid_amount <= existingBid.bid_amount) {
-            return res.status(400).json({ 
-                error: `New bid amount must be higher than the current amount (£${existingBid.bid_amount}).` 
+            return res.status(400).json({
+                error: `New bid amount must be higher than the current amount (£${existingBid.bid_amount}).`
             });
         }
 
@@ -117,7 +117,7 @@ const updateBid = async (req, res) => {
             [bid_amount, bidId]
         );
 
-        res.status(200).json({ 
+        res.status(200).json({
             message: 'Bid updated successfully.',
             previous_amount: existingBid.bid_amount,
             new_amount: bid_amount
@@ -207,8 +207,8 @@ const getBidStatus = async (req, res) => {
             your_amount: userBid.bid_amount,
             status: 'pending',
             currently_winning: isCurrentlyWinning,
-            feedback: isCurrentlyWinning 
-                ? 'You are currently the highest bidder!' 
+            feedback: isCurrentlyWinning
+                ? 'You are currently the highest bidder!'
                 : 'You are not currently the highest bidder. Consider increasing your bid.',
             total_bids_for_date: totalBids[0].count
         });
@@ -309,7 +309,7 @@ const getTomorrowSlot = async (req, res) => {
             date: tomorrowStr,
             status: 'open',
             pending_bids: pendingBids[0].count,
-            message: pendingBids[0].count > 0 
+            message: pendingBids[0].count > 0
                 ? `Tomorrow's slot is open with ${pendingBids[0].count} bid(s) placed.`
                 : 'Tomorrow\'s slot is open. No bids placed yet.'
         });
@@ -317,66 +317,6 @@ const getTomorrowSlot = async (req, res) => {
     } catch (error) {
         console.error('Tomorrow Slot Error:', error);
         res.status(500).json({ error: 'Internal server error.' });
-    }
-};
-
-const resolveBids = async (req, res) => {
-    try {
-        const { target_date } = req.body;
-
-        if (!target_date) {
-            return res.status(400).json({ error: 'Target date is required to resolve bids.' });
-        }
-
-        //Find all pending bids for this specific date
-        const [pendingBids] = await pool.query(
-            `SELECT id, user_id, bid_amount 
-             FROM bids 
-             WHERE target_date = ? AND status = 'pending' 
-             ORDER BY bid_amount DESC, created_at ASC`,
-            [target_date]
-        );
-
-        if (pendingBids.length === 0) {
-            return res.status(200).json({ message: `No pending bids found for ${target_date}.` });
-        }
-
-        const winningBid = pendingBids[0];
-
-        //Extract the IDs of the losing bids
-        const losingBidIds = pendingBids.slice(1).map(bid => bid.id);
-
-        //Mark the highest bid as 'won'
-        await pool.query(
-            `UPDATE bids SET status = 'won' WHERE id = ?`,
-            [winningBid.id]
-        );
-
-        //Mark remaining bids for this date as 'lost'
-        if (losingBidIds.length > 0) {
-            const placeholders = losingBidIds.map(() => '?').join(',');
-            await pool.query(
-                `UPDATE bids SET status = 'lost' WHERE id IN (${placeholders})`,
-                losingBidIds
-            );
-        }
-
-        //Increment the winner's monthly appearance count
-        await pool.query(
-            'UPDATE profiles SET monthly_appearance_count = monthly_appearance_count + 1 WHERE user_id = ?',
-            [winningBid.user_id]
-        );
-
-        res.status(200).json({
-            message: `Bids resolved for ${target_date}.`,
-            winner_user_id: winningBid.user_id,
-            winning_amount: winningBid.bid_amount,
-            total_bids_processed: pendingBids.length
-        });
-
-    } catch (error) {
-        console.error('Resolve Bids Error:', error);
-        res.status(500).json({ error: 'Internal server error while resolving bids.' });
     }
 };
 
@@ -543,34 +483,5 @@ router.put('/:id', updateBid);
  */
 router.delete('/:id', cancelBid);
 
-/**
- * @swagger
- * /api/bidding/resolve:
- *   post:
- *     summary: Resolve bids for a specific date (Finds the highest bidder)
- *     tags: [Bidding]
- *     security:
- *       - bearerAuth: []
- *         ApiKeyAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - target_date
- *             properties:
- *               target_date:
- *                 type: string
- *                 format: date
- *                 example: "2026-04-15"
- *     responses:
- *       200:
- *         description: Bids resolved. Returns the winner.
- *       400:
- *         description: Missing target_date
- */
-router.post('/resolve', resolveBids);
 
 module.exports = router;

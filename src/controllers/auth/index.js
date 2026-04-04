@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const pool = require('../../config/db');
 const { isValidUniversityEmail, isStrongPassword } = require('../../utils/validators');
 const jwt = require('jsonwebtoken');
+const sendMail = require('../../utils/mailer');
 
 /**
  * @swagger
@@ -51,7 +52,16 @@ const register = async (req, res) => {
         //Create empty profile for the user
         await pool.query('INSERT INTO profiles (user_id) VALUES (?)', [result.insertId]);
 
-        console.log(`Mock Email: Send verification token ${verificationToken} to ${email}`);
+        //Send verification email
+        await sendMail(
+            email,
+            'Verify Your Alumni Influencers Account',
+            `Your verification token is: ${verificationToken}`,
+            `<h2>Welcome to Alumni Influencers!</h2>
+             <p>Use the following token to verify your account:</p>
+             <p style="font-size:18px;font-weight:bold;background:#f0f4f8;padding:12px;border-radius:6px;word-break:break-all;">${verificationToken}</p>
+             <p><em>This token expires in 24 hours.</em></p>`
+        );
 
         res.status(201).json({
             message: 'Registration successful. Please check your email to verify your account.'
@@ -134,6 +144,9 @@ const login = async (req, res) => {
             { expiresIn: process.env.JWT_EXPIRES_IN } // e.g., '24h' from your .env
         );
 
+        //Set the token as an HttpOnly cookie
+        res.setHeader('Set-Cookie', `token=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict`);
+
         res.status(200).json({
             message: 'Login successful.',
             token: token
@@ -146,9 +159,11 @@ const login = async (req, res) => {
 };
 
 const logout = async (req, res) => {
+    //Destroy the session cookie
+    res.setHeader('Set-Cookie', 'token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict');
 
     res.status(200).json({
-        message: 'Logged out successfully. Client must discard the token.'
+        message: 'Logged out successfully. Session cookie has been destroyed.'
     });
 };
 
@@ -172,7 +187,16 @@ const requestPasswordReset = async (req, res) => {
         );
 
         if (result.affectedRows > 0) {
-            console.log(`Mock Email: Password reset link: /reset-password?token=${resetToken}`);
+            //Send password reset email
+            await sendMail(
+                email,
+                'Password Reset - Alumni Influencers',
+                `Your password reset token is: ${resetToken}`,
+                `<h2>Password Reset Request</h2>
+                 <p>Use the following token to reset your password:</p>
+                 <p style="font-size:18px;font-weight:bold;background:#f0f4f8;padding:12px;border-radius:6px;word-break:break-all;">${resetToken}</p>
+                 <p><em>This token expires in 1 hour. If you did not request this, ignore this email.</em></p>`
+            );
         }
 
         res.status(200).json({

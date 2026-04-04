@@ -63,7 +63,11 @@ app.get('/api/health', (req, res) => {
 app.use('/api', apiLimiter);
 app.use('/api', requireApiKey);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+        persistAuthorization: true
+    }
+}));
 app.use('/uploads', express.static('uploads'));
 
 //Load controllers
