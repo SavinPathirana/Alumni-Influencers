@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../../config/db');
+const { Bid, User, Profile, Degree, Certification, Licence, ProfessionalCourse, Employment } = require('../../models');
 
 /**
  * @swagger
@@ -13,22 +13,30 @@ const pool = require('../../config/db');
 
 const getTodaysFeatured = async (req, res) => {
     try {
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-        //Find the winning bid for today
-        const [wonBids] = await pool.query(
-            `SELECT b.user_id, b.bid_amount, b.target_date,
-                    u.email,
-                    p.bio, p.linkedin_url, p.profile_image_url
-             FROM bids b
-             JOIN users u ON b.user_id = u.id
-             JOIN profiles p ON p.user_id = u.id
-             WHERE b.target_date = ? AND b.status = 'won'
-             LIMIT 1`,
-            [today]
-        );
+        //Find the winning bid for today with eager loaded user and profile
+        const wonBid = await Bid.findOne({
+            where: { target_date: today, status: 'won' },
+            include: [{
+                model: User,
+                attributes: ['id', 'email'],
+                include: [{
+                    model: Profile,
+                    attributes: ['id', 'bio', 'linkedin_url', 'profile_image_url'],
+                    include: [
+                        { model: Degree, attributes: ['title', 'official_url', 'completion_date'] },
+                        { model: Certification, attributes: ['title', 'url', 'completion_date'] },
+                        { model: Licence, attributes: ['title', 'url', 'completion_date'] },
+                        { model: ProfessionalCourse, attributes: ['title', 'url', 'completion_date'] },
+                        { model: Employment, attributes: ['company', 'role', 'start_date', 'end_date'] }
+                    ]
+                }]
+            }]
+        });
 
-        if (wonBids.length === 0) {
+        if (!wonBid) {
             return res.status(200).json({
                 date: today,
                 featured: false,
@@ -36,29 +44,22 @@ const getTodaysFeatured = async (req, res) => {
             });
         }
 
-        const winner = wonBids[0];
-        const profileId = (await pool.query('SELECT id FROM profiles WHERE user_id = ?', [winner.user_id]))[0][0].id;
-
-        //Fetch all profile sections for the winner
-        const [degrees] = await pool.query('SELECT title, official_url, completion_date FROM degrees WHERE profile_id = ?', [profileId]);
-        const [certs] = await pool.query('SELECT title, url, completion_date FROM certifications WHERE profile_id = ?', [profileId]);
-        const [licences] = await pool.query('SELECT title, url, completion_date FROM licences WHERE profile_id = ?', [profileId]);
-        const [courses] = await pool.query('SELECT title, url, completion_date FROM professional_courses WHERE profile_id = ?', [profileId]);
-        const [employment] = await pool.query('SELECT company, role, start_date, end_date FROM employment_history WHERE profile_id = ?', [profileId]);
+        const user = wonBid.User;
+        const profile = user.Profile;
 
         res.status(200).json({
             date: today,
             featured: true,
             alumni: {
-                email: winner.email,
-                bio: winner.bio,
-                linkedin_url: winner.linkedin_url,
-                profile_image_url: winner.profile_image_url,
-                degrees,
-                certifications: certs,
-                licences,
-                professional_courses: courses,
-                employment_history: employment
+                email: user.email,
+                bio: profile.bio,
+                linkedin_url: profile.linkedin_url,
+                profile_image_url: profile.profile_image_url,
+                degrees: profile.Degrees,
+                certifications: profile.Certifications,
+                licences: profile.Licences,
+                professional_courses: profile.ProfessionalCourses,
+                employment_history: profile.Employments
             }
         });
 

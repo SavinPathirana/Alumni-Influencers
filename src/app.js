@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
-require('./config/db');
+
+const { sequelize } = require('./models');
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
@@ -78,9 +79,17 @@ require('./utils/cronJobs');
 //Server initialization
 const PORT = process.env.PORT || 3000;
 if (process.env.NODE_ENV !== 'test') {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
+    //Sync Sequelize models then start server
+    sequelize.sync({ alter: true })
+        .then(() => {
+            console.log('Sequelize models synchronized with database.');
+            app.listen(PORT, () => {
+                console.log(`Server running on port ${PORT}`);
+            });
+        })
+        .catch(err => {
+            console.error('Failed to sync Sequelize models:', err);
+        });
 }
 
 app.use((req, res, next) => {

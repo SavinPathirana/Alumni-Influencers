@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const pool = require('../../config/db');
+const { User, Profile } = require('../../models');
 const { isValidUniversityEmail, isStrongPassword } = require('../../utils/validators');
 const jwt = require('jsonwebtoken');
 const sendMail = require('../../utils/mailer');
+const { Op } = require('sequelize');
 
 /**
  * @swagger
@@ -31,8 +32,8 @@ const register = async (req, res) => {
         }
 
         //Duplicate checking
-        const [existingUsers] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-        if (existingUsers.length > 0) {
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
             return res.status(409).json({ error: 'Email is already registered.' });
         }
 
@@ -44,13 +45,14 @@ const register = async (req, res) => {
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
         //Save to database
-        const [result] = await pool.query(
-            'INSERT INTO users (email, password_hash, verification_token) VALUES (?, ?, ?)',
-            [email, passwordHash, verificationToken]
-        );
+        const user = await User.create({
+            email,
+            password_hash: passwordHash,
+            verification_token: verificationToken
+        });
 
         //Create empty profile for the user
-        await pool.query('INSERT INTO profiles (user_id) VALUES (?)', [result.insertId]);
+        await Profile.create({ user_id: user.id });
 
         //Send verification email
         await sendMail(
@@ -78,16 +80,11 @@ const verifyEmail = async (req, res) => {
         const { token } = req.params;
 
         //Find the user with the token
-        const [users] = await pool.query(
-            'SELECT id, created_at FROM users WHERE verification_token = ?',
-            [token]
-        );
+        const user = await User.findOne({ where: { verification_token: token } });
 
-        if (users.length === 0) {
+        if (!user) {
             return res.status(400).json({ error: 'Invalid or already used verification token.' });
         }
-
-        const user = users[0];
 
         //Token expiry check
         const tokenAgeHours = (new Date() - new Date(user.created_at)) / (1000 * 60 * 60);
@@ -96,10 +93,7 @@ const verifyEmail = async (req, res) => {
         }
 
         //Mark user as verified and clear the token
-        await pool.query(
-            'UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = ?',
-            [user.id]
-        );
+        await user.update({ is_verified: true, verification_token: null });
 
         res.status(200).json({ message: 'Email successfully verified. You can now log in.' });
 
@@ -119,12 +113,10 @@ const login = async (req, res) => {
         }
 
         //Look for the user
-        const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-        if (users.length === 0) {
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
             return res.status(401).json({ error: 'Invalid email or password.' });
         }
-
-        const user = users[0];
 
         //Verify password
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -141,7 +133,7 @@ const login = async (req, res) => {
         const token = jwt.sign(
             { userId: user.id, email: user.email },
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN } // e.g., '24h' from your .env
+            { expiresIn: process.env.JWT_EXPIRES_IN }
         );
 
         //Set the token as an HttpOnly cookie
@@ -179,14 +171,13 @@ const requestPasswordReset = async (req, res) => {
         const resetToken = crypto.randomBytes(32).toString('hex');
 
         //Update the user record with the token
-        const [result] = await pool.query(
-            `UPDATE users 
-             SET reset_token = ?, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 1 HOUR) 
-             WHERE email = ?`,
-            [resetToken, email]
+        const resetExpiry = new Date(Date.now() + 60 * 60 * 1000);
+        const [updatedCount] = await User.update(
+            { reset_token: resetToken, reset_token_expiry: resetExpiry },
+            { where: { email } }
         );
 
-        if (result.affectedRows > 0) {
+        if (updatedCount > 0) {
             //Send password reset email
             await sendMail(
                 email,
@@ -223,29 +214,27 @@ const resetPassword = async (req, res) => {
         }
 
         //Find the user with this token
-        const [users] = await pool.query(
-            `SELECT id FROM users 
-             WHERE reset_token = ? AND reset_token_expiry > NOW()`,
-            [token]
-        );
+        const user = await User.findOne({
+            where: {
+                reset_token: token,
+                reset_token_expiry: { [Op.gt]: new Date() }
+            }
+        });
 
-        if (users.length === 0) {
+        if (!user) {
             return res.status(400).json({ error: 'Invalid or expired password reset token.' });
         }
-
-        const user = users[0];
 
         //Hash the new password
         const saltRounds = 12;
         const passwordHash = await bcrypt.hash(newPassword, saltRounds);
 
         //Update the password
-        await pool.query(
-            `UPDATE users 
-             SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL 
-             WHERE id = ?`,
-            [passwordHash, user.id]
-        );
+        await user.update({
+            password_hash: passwordHash,
+            reset_token: null,
+            reset_token_expiry: null
+        });
 
         res.status(200).json({ message: 'Password has been successfully reset. You can now log in.' });
 

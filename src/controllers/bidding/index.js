@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../../config/db');
+const { Bid, Profile, User } = require('../../models');
+const { Op, fn, col, literal } = require('sequelize');
 const authenticateToken = require('../../middlewares/authMiddleware');
 
 /**
@@ -37,39 +38,39 @@ const placeBid = async (req, res) => {
         }
 
         //3-Win Monthly Limit Rule
-        const [winCheck] = await pool.query(
-            `SELECT COUNT(*) as winCount 
-             FROM bids 
-             WHERE user_id = ? 
-             AND status = 'won' 
-             AND MONTH(target_date) = MONTH(?) 
-             AND YEAR(target_date) = YEAR(?)`,
-            [userId, target_date, target_date]
-        );
+        const targetMonth = new Date(target_date).getMonth() + 1;
+        const targetYear = new Date(target_date).getFullYear();
+
+        const winCount = await Bid.count({
+            where: {
+                user_id: userId,
+                status: 'won',
+                [Op.and]: [
+                    literal(`MONTH(target_date) = ${targetMonth}`),
+                    literal(`YEAR(target_date) = ${targetYear}`)
+                ]
+            }
+        });
 
         //Check if the user has the event bonus for a 4th slot
-        const [profileCheck] = await pool.query(
-            'SELECT has_event_bonus FROM profiles WHERE user_id = ?',
-            [userId]
-        );
-        const hasEventBonus = profileCheck.length > 0 && profileCheck[0].has_event_bonus;
+        const profile = await Profile.findOne({ where: { user_id: userId } });
+        const hasEventBonus = profile && profile.has_event_bonus;
         const maxWins = hasEventBonus ? 4 : 3;
 
-        if (winCheck[0].winCount >= maxWins) {
+        if (winCount >= maxWins) {
             return res.status(403).json({
                 error: `Monthly limit reached. You can only win a maximum of ${maxWins} feature slots per month.${hasEventBonus ? ' (includes event bonus)' : ''}`
             });
         }
 
         //Insert the Bid
-        const [result] = await pool.query(
-            'INSERT INTO bids (user_id, target_date, bid_amount, status) VALUES (?, ?, ?, ?)',
-            [userId, target_date, bid_amount, 'pending']
-        );
+        const bid = await Bid.create({
+            user_id: userId, target_date, bid_amount, status: 'pending'
+        });
 
         res.status(201).json({
             message: 'Blind bid placed successfully.',
-            bidId: result.insertId
+            bidId: bid.id
         });
 
     } catch (error) {
@@ -89,16 +90,13 @@ const updateBid = async (req, res) => {
         }
 
         //Get the existing bid
-        const [existingBids] = await pool.query(
-            'SELECT * FROM bids WHERE id = ? AND user_id = ?',
-            [bidId, userId]
-        );
+        const existingBid = await Bid.findOne({
+            where: { id: bidId, user_id: userId }
+        });
 
-        if (existingBids.length === 0) {
+        if (!existingBid) {
             return res.status(404).json({ error: 'Bid not found or unauthorized.' });
         }
-
-        const existingBid = existingBids[0];
 
         //Can only update pending bids
         if (existingBid.status !== 'pending') {
@@ -112,14 +110,12 @@ const updateBid = async (req, res) => {
             });
         }
 
-        await pool.query(
-            'UPDATE bids SET bid_amount = ? WHERE id = ?',
-            [bid_amount, bidId]
-        );
+        const previousAmount = existingBid.bid_amount;
+        await existingBid.update({ bid_amount });
 
         res.status(200).json({
             message: 'Bid updated successfully.',
-            previous_amount: existingBid.bid_amount,
+            previous_amount: previousAmount,
             new_amount: bid_amount
         });
 
@@ -135,20 +131,19 @@ const cancelBid = async (req, res) => {
         const bidId = req.params.id;
 
         //Check that bid exists and belongs to the user
-        const [existingBids] = await pool.query(
-            'SELECT * FROM bids WHERE id = ? AND user_id = ?',
-            [bidId, userId]
-        );
+        const existingBid = await Bid.findOne({
+            where: { id: bidId, user_id: userId }
+        });
 
-        if (existingBids.length === 0) {
+        if (!existingBid) {
             return res.status(404).json({ error: 'Bid not found or unauthorized.' });
         }
 
-        if (existingBids[0].status !== 'pending') {
+        if (existingBid.status !== 'pending') {
             return res.status(400).json({ error: 'Only pending bids can be cancelled.' });
         }
 
-        await pool.query('DELETE FROM bids WHERE id = ?', [bidId]);
+        await existingBid.destroy();
 
         res.status(200).json({ message: 'Bid cancelled successfully.' });
 
@@ -164,16 +159,13 @@ const getBidStatus = async (req, res) => {
         const bidId = req.params.id;
 
         //Get the user's bid
-        const [userBids] = await pool.query(
-            'SELECT * FROM bids WHERE id = ? AND user_id = ?',
-            [bidId, userId]
-        );
+        const userBid = await Bid.findOne({
+            where: { id: bidId, user_id: userId }
+        });
 
-        if (userBids.length === 0) {
+        if (!userBid) {
             return res.status(404).json({ error: 'Bid not found or unauthorized.' });
         }
-
-        const userBid = userBids[0];
 
         //If already resolved, return the final status
         if (userBid.status !== 'pending') {
@@ -187,19 +179,22 @@ const getBidStatus = async (req, res) => {
         }
 
         //For pending bids, check if they are currently the highest WITHOUT revealing the actual highest amount
-        const [higherBids] = await pool.query(
-            `SELECT COUNT(*) as count FROM bids 
-             WHERE target_date = ? AND status = 'pending' AND bid_amount > ?`,
-            [userBid.target_date, userBid.bid_amount]
-        );
+        const higherBidCount = await Bid.count({
+            where: {
+                target_date: userBid.target_date,
+                status: 'pending',
+                bid_amount: { [Op.gt]: userBid.bid_amount }
+            }
+        });
 
-        const [totalBids] = await pool.query(
-            `SELECT COUNT(*) as count FROM bids 
-             WHERE target_date = ? AND status = 'pending'`,
-            [userBid.target_date]
-        );
+        const totalBidCount = await Bid.count({
+            where: {
+                target_date: userBid.target_date,
+                status: 'pending'
+            }
+        });
 
-        const isCurrentlyWinning = higherBids[0].count === 0;
+        const isCurrentlyWinning = higherBidCount === 0;
 
         res.status(200).json({
             bid_id: userBid.id,
@@ -210,7 +205,7 @@ const getBidStatus = async (req, res) => {
             feedback: isCurrentlyWinning
                 ? 'You are currently the highest bidder!'
                 : 'You are not currently the highest bidder. Consider increasing your bid.',
-            total_bids_for_date: totalBids[0].count
+            total_bids_for_date: totalBidCount
         });
 
     } catch (error) {
@@ -223,10 +218,11 @@ const getMyBids = async (req, res) => {
     try {
         const userId = req.user.userId;
 
-        const [bids] = await pool.query(
-            'SELECT id, target_date, bid_amount, status, created_at FROM bids WHERE user_id = ? ORDER BY target_date DESC',
-            [userId]
-        );
+        const bids = await Bid.findAll({
+            where: { user_id: userId },
+            attributes: ['id', 'target_date', 'bid_amount', 'status', 'created_at'],
+            order: [['target_date', 'DESC']]
+        });
 
         res.status(200).json({ bids });
 
@@ -241,25 +237,29 @@ const getMonthlyStatus = async (req, res) => {
         const userId = req.user.userId;
 
         //Count wins this month
-        const [winCheck] = await pool.query(
-            `SELECT COUNT(*) as winCount 
-             FROM bids 
-             WHERE user_id = ? 
-             AND status = 'won' 
-             AND MONTH(target_date) = MONTH(CURDATE()) 
-             AND YEAR(target_date) = YEAR(CURDATE())`,
-            [userId]
-        );
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        const winsThisMonth = await Bid.count({
+            where: {
+                user_id: userId,
+                status: 'won',
+                [Op.and]: [
+                    literal(`MONTH(target_date) = ${currentMonth}`),
+                    literal(`YEAR(target_date) = ${currentYear}`)
+                ]
+            }
+        });
 
         //Check event bonus
-        const [profileCheck] = await pool.query(
-            'SELECT has_event_bonus, monthly_appearance_count FROM profiles WHERE user_id = ?',
-            [userId]
-        );
+        const profile = await Profile.findOne({
+            where: { user_id: userId },
+            attributes: ['has_event_bonus', 'monthly_appearance_count']
+        });
 
-        const hasEventBonus = profileCheck.length > 0 && profileCheck[0].has_event_bonus;
+        const hasEventBonus = profile && profile.has_event_bonus;
         const maxWins = hasEventBonus ? 4 : 3;
-        const winsThisMonth = winCheck[0].winCount;
         const remainingSlots = Math.max(0, maxWins - winsThisMonth);
 
         res.status(200).json({
@@ -281,17 +281,15 @@ const getTomorrowSlot = async (req, res) => {
         //Calculate tomorrow's date
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
         //Check if there's already a winner for tomorrow
-        const [wonBids] = await pool.query(
-            `SELECT b.id, b.bid_amount, u.email 
-             FROM bids b JOIN users u ON b.user_id = u.id 
-             WHERE b.target_date = ? AND b.status = 'won'`,
-            [tomorrowStr]
-        );
+        const wonBid = await Bid.findOne({
+            where: { target_date: tomorrowStr, status: 'won' },
+            include: [{ model: User, attributes: ['email'] }]
+        });
 
-        if (wonBids.length > 0) {
+        if (wonBid) {
             return res.status(200).json({
                 date: tomorrowStr,
                 status: 'taken',
@@ -300,17 +298,16 @@ const getTomorrowSlot = async (req, res) => {
         }
 
         //Count pending bids for tomorrow
-        const [pendingBids] = await pool.query(
-            `SELECT COUNT(*) as count FROM bids WHERE target_date = ? AND status = 'pending'`,
-            [tomorrowStr]
-        );
+        const pendingCount = await Bid.count({
+            where: { target_date: tomorrowStr, status: 'pending' }
+        });
 
         res.status(200).json({
             date: tomorrowStr,
             status: 'open',
-            pending_bids: pendingBids[0].count,
-            message: pendingBids[0].count > 0
-                ? `Tomorrow's slot is open with ${pendingBids[0].count} bid(s) placed.`
+            pending_bids: pendingCount,
+            message: pendingCount > 0
+                ? `Tomorrow's slot is open with ${pendingCount} bid(s) placed.`
                 : 'Tomorrow\'s slot is open. No bids placed yet.'
         });
 
@@ -482,6 +479,5 @@ router.put('/:id', updateBid);
  *         description: Only pending bids can be cancelled
  */
 router.delete('/:id', cancelBid);
-
 
 module.exports = router;

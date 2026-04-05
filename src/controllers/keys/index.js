@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const pool = require('../../config/db');
+const { ApiKey, ApiUsageLog, sequelize } = require('../../models');
+const { fn, col, literal } = require('sequelize');
 
 /**
  * @swagger
@@ -23,14 +24,11 @@ const generateKey = async (req, res) => {
         //Generate a cryptographically secure API key
         const keyValue = crypto.randomBytes(32).toString('hex');
 
-        const [result] = await pool.query(
-            'INSERT INTO api_keys (key_value, client_name) VALUES (?, ?)',
-            [keyValue, client_name]
-        );
+        const apiKey = await ApiKey.create({ key_value: keyValue, client_name });
 
         res.status(201).json({
             message: 'API key generated successfully. Store this key securely — it will not be shown again.',
-            key_id: result.insertId,
+            key_id: apiKey.id,
             api_key: keyValue,
             client_name: client_name
         });
@@ -43,13 +41,14 @@ const generateKey = async (req, res) => {
 
 const listKeys = async (req, res) => {
     try {
-        const [keys] = await pool.query(
-            `SELECT id, 
-                    CONCAT(LEFT(key_value, 8), '...', RIGHT(key_value, 4)) as key_preview, 
-                    client_name, is_active, created_at, revoked_at 
-             FROM api_keys 
-             ORDER BY created_at DESC`
-        );
+        const keys = await ApiKey.findAll({
+            attributes: [
+                'id',
+                [fn('CONCAT', fn('LEFT', col('key_value'), 8), '...', fn('RIGHT', col('key_value'), 4)), 'key_preview'],
+                'client_name', 'is_active', 'created_at', 'revoked_at'
+            ],
+            order: [['created_at', 'DESC']]
+        });
 
         res.status(200).json({ api_keys: keys });
 
@@ -64,55 +63,47 @@ const getKeyStats = async (req, res) => {
         const keyId = req.params.id;
 
         //Get key details
-        const [keys] = await pool.query(
-            `SELECT id, CONCAT(LEFT(key_value, 8), '...', RIGHT(key_value, 4)) as key_preview, 
-                    client_name, is_active, created_at, revoked_at 
-             FROM api_keys WHERE id = ?`,
-            [keyId]
-        );
+        const key = await ApiKey.findOne({
+            where: { id: keyId },
+            attributes: [
+                'id',
+                [fn('CONCAT', fn('LEFT', col('key_value'), 8), '...', fn('RIGHT', col('key_value'), 4)), 'key_preview'],
+                'client_name', 'is_active', 'created_at', 'revoked_at'
+            ]
+        });
 
-        if (keys.length === 0) {
+        if (!key) {
             return res.status(404).json({ error: 'API key not found.' });
         }
 
         //Total request count
-        const [totalCount] = await pool.query(
-            'SELECT COUNT(*) as total FROM api_usage_logs WHERE api_key_id = ?',
-            [keyId]
-        );
+        const totalRequests = await ApiUsageLog.count({ where: { api_key_id: keyId } });
 
         //Last used timestamp
-        const [lastUsed] = await pool.query(
-            'SELECT MAX(timestamp) as last_used FROM api_usage_logs WHERE api_key_id = ?',
-            [keyId]
-        );
+        const lastUsed = await ApiUsageLog.max('timestamp', { where: { api_key_id: keyId } });
 
-        //Endpoint breakdown 
-        const [endpointStats] = await pool.query(
-            `SELECT method, endpoint, COUNT(*) as hit_count 
-             FROM api_usage_logs 
-             WHERE api_key_id = ? 
-             GROUP BY method, endpoint 
-             ORDER BY hit_count DESC 
-             LIMIT 20`,
-            [keyId]
-        );
+        //Endpoint breakdown
+        const endpointStats = await ApiUsageLog.findAll({
+            where: { api_key_id: keyId },
+            attributes: ['method', 'endpoint', [fn('COUNT', col('id')), 'hit_count']],
+            group: ['method', 'endpoint'],
+            order: [[literal('hit_count'), 'DESC']],
+            limit: 20
+        });
 
         //Recent requests
-        const [recentRequests] = await pool.query(
-            `SELECT method, endpoint, timestamp 
-             FROM api_usage_logs 
-             WHERE api_key_id = ? 
-             ORDER BY timestamp DESC 
-             LIMIT 10`,
-            [keyId]
-        );
+        const recentRequests = await ApiUsageLog.findAll({
+            where: { api_key_id: keyId },
+            attributes: ['method', 'endpoint', 'timestamp'],
+            order: [['timestamp', 'DESC']],
+            limit: 10
+        });
 
         res.status(200).json({
-            key: keys[0],
+            key,
             usage: {
-                total_requests: totalCount[0].total,
-                last_used: lastUsed[0].last_used,
+                total_requests: totalRequests,
+                last_used: lastUsed,
                 endpoint_breakdown: endpointStats,
                 recent_requests: recentRequests
             }
@@ -128,12 +119,12 @@ const revokeKey = async (req, res) => {
     try {
         const keyId = req.params.id;
 
-        const [result] = await pool.query(
-            'UPDATE api_keys SET is_active = FALSE, revoked_at = NOW() WHERE id = ? AND is_active = TRUE',
-            [keyId]
+        const [updatedCount] = await ApiKey.update(
+            { is_active: false, revoked_at: new Date() },
+            { where: { id: keyId, is_active: true } }
         );
 
-        if (result.affectedRows === 0) {
+        if (updatedCount === 0) {
             return res.status(404).json({ error: 'API key not found or already revoked.' });
         }
 

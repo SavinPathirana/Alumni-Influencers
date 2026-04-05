@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const { ApiKey, ApiUsageLog } = require('../models');
 
 const requireApiKey = async (req, res, next) => {
     
@@ -10,26 +10,22 @@ const requireApiKey = async (req, res, next) => {
 
     try {
         //Check against the database for dynamically managed keys
-        const [keys] = await pool.query(
-            'SELECT id, client_name, is_active FROM api_keys WHERE key_value = ?',
-            [providedKey]
-        );
+        const key = await ApiKey.findOne({ where: { key_value: providedKey } });
 
         //Also check the legacy .env key for backwards compatibility
         const envKey = process.env.AR_CLIENT_API_KEY;
         
-        if (keys.length > 0) {
-            const key = keys[0];
-
+        if (key) {
             if (!key.is_active) {
                 return res.status(403).json({ error: 'Forbidden. This API key has been revoked.' });
             }
 
             //Log the usage asynchronously (don't block the request)
-            pool.query(
-                'INSERT INTO api_usage_logs (api_key_id, endpoint, method) VALUES (?, ?, ?)',
-                [key.id, req.originalUrl, req.method]
-            ).catch(err => console.error('Usage log error:', err));
+            ApiUsageLog.create({
+                api_key_id: key.id,
+                endpoint: req.originalUrl,
+                method: req.method
+            }).catch(err => console.error('Usage log error:', err));
 
             req.apiKeyId = key.id;
             req.clientName = key.client_name;
