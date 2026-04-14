@@ -12,6 +12,30 @@ module.exports = (sequelize) => {
             unique: true,
             allowNull: false
         },
+        first_name: {
+            type: DataTypes.STRING(100),
+            allowNull: true
+        },
+        last_name: {
+            type: DataTypes.STRING(100),
+            allowNull: true
+        },
+        programme: {
+            type: DataTypes.STRING(255),
+            allowNull: true
+        },
+        graduation_date: {
+            type: DataTypes.DATEONLY,
+            allowNull: true
+        },
+        industry_sector: {
+            type: DataTypes.STRING(100),
+            allowNull: true
+        },
+        location: {
+            type: DataTypes.STRING(255),
+            allowNull: true
+        },
         bio: {
             type: DataTypes.TEXT,
             allowNull: true

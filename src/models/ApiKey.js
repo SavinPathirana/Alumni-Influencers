@@ -23,6 +23,18 @@ module.exports = (sequelize) => {
         revoked_at: {
             type: DataTypes.DATE,
             allowNull: true
+        },
+        permissions: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            defaultValue: '["read:alumni","read:analytics","read:alumni_of_day"]',
+            get() {
+                const raw = this.getDataValue('permissions');
+                return raw ? JSON.parse(raw) : [];
+            },
+            set(val) {
+                this.setDataValue('permissions', JSON.stringify(val));
+            }
         }
     }, {
         tableName: 'api_keys',

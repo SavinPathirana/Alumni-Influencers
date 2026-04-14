@@ -26,6 +26,10 @@ module.exports = (sequelize) => {
         end_date: {
             type: DataTypes.DATEONLY,
             allowNull: true
+        },
+        industry_sector: {
+            type: DataTypes.STRING(100),
+            allowNull: true
         }
     }, {
         tableName: 'employment_history',

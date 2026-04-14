@@ -24,6 +24,7 @@ const Employment = require('./Employment')(sequelize);
 const Bid = require('./Bid')(sequelize);
 const ApiKey = require('./ApiKey')(sequelize);
 const ApiUsageLog = require('./ApiUsageLog')(sequelize);
+const Skill = require('./Skill')(sequelize);
 
 //Define Associations
 User.hasOne(Profile, { foreignKey: 'user_id', onDelete: 'CASCADE' });
@@ -44,6 +45,9 @@ ProfessionalCourse.belongsTo(Profile, { foreignKey: 'profile_id' });
 Profile.hasMany(Employment, { foreignKey: 'profile_id', onDelete: 'CASCADE' });
 Employment.belongsTo(Profile, { foreignKey: 'profile_id' });
 
+Profile.hasMany(Skill, { foreignKey: 'profile_id', onDelete: 'CASCADE' });
+Skill.belongsTo(Profile, { foreignKey: 'profile_id' });
+
 User.hasMany(Bid, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 Bid.belongsTo(User, { foreignKey: 'user_id' });
 
@@ -61,5 +65,6 @@ module.exports = {
     Employment,
     Bid,
     ApiKey,
-    ApiUsageLog
+    ApiUsageLog,
+    Skill
 };

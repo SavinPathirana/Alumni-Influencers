@@ -23,7 +23,7 @@ const getMyProfile = async (req, res) => {
 
         const profile = await Profile.findOne({
             where: { user_id: userId },
-            attributes: ['bio', 'linkedin_url', 'profile_image_url', 'monthly_appearance_count', 'has_event_bonus']
+            attributes: ['first_name', 'last_name', 'bio', 'linkedin_url', 'profile_image_url', 'programme', 'graduation_date', 'industry_sector', 'location', 'monthly_appearance_count', 'has_event_bonus']
         });
 
         if (!profile) {
@@ -40,7 +40,7 @@ const getMyProfile = async (req, res) => {
 const updateBaseProfile = async (req, res) => {
     try {
         const userId = req.user.userId;
-        const { bio, linkedin_url } = req.body;
+        const { bio, linkedin_url, first_name, last_name, programme, graduation_date, industry_sector, location } = req.body;
 
         //Validation
         if (linkedin_url && !isValidUrl(linkedin_url)) {
@@ -50,8 +50,18 @@ const updateBaseProfile = async (req, res) => {
             return res.status(400).json({ error: 'URL must be a valid LinkedIn profile.' });
         }
 
+        const updateData = {};
+        if (bio !== undefined) updateData.bio = bio;
+        if (linkedin_url !== undefined) updateData.linkedin_url = linkedin_url;
+        if (first_name !== undefined) updateData.first_name = first_name;
+        if (last_name !== undefined) updateData.last_name = last_name;
+        if (programme !== undefined) updateData.programme = programme;
+        if (graduation_date !== undefined) updateData.graduation_date = graduation_date;
+        if (industry_sector !== undefined) updateData.industry_sector = industry_sector;
+        if (location !== undefined) updateData.location = location;
+
         await Profile.update(
-            { bio, linkedin_url },
+            updateData,
             { where: { user_id: userId } }
         );
 
