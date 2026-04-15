@@ -29,10 +29,13 @@ const requireApiKey = async (req, res, next) => {
 
             req.apiKeyId = key.id;
             req.clientName = key.client_name;
+            req.apiPermissions = key.permissions || [];
             next();
 
         } else if (providedKey === envKey) {
-            //Legacy .env key still works
+            //Legacy .env key still works — grant all permissions
+            req.legacyKey = true;
+            req.apiPermissions = ['read:alumni', 'read:analytics', 'read:alumni_of_day'];
             next();
 
         } else {

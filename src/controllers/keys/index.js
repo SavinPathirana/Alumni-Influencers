@@ -15,22 +15,40 @@ const { fn, col, literal } = require('sequelize');
 
 const generateKey = async (req, res) => {
     try {
-        const { client_name } = req.body;
+        const { client_name, permissions } = req.body;
 
         if (!client_name) {
             return res.status(400).json({ error: 'Client name is required.' });
         }
 
+        // Validate permissions if provided
+        const validScopes = ['read:alumni', 'read:analytics', 'read:alumni_of_day'];
+        const keyPermissions = permissions || validScopes; // Default to all scopes
+
+        const invalidScopes = keyPermissions.filter(s => !validScopes.includes(s));
+        if (invalidScopes.length > 0) {
+            return res.status(400).json({
+                error: 'Invalid permission scopes.',
+                invalid: invalidScopes,
+                valid_scopes: validScopes
+            });
+        }
+
         //Generate a cryptographically secure API key
         const keyValue = crypto.randomBytes(32).toString('hex');
 
-        const apiKey = await ApiKey.create({ key_value: keyValue, client_name });
+        const apiKey = await ApiKey.create({
+            key_value: keyValue,
+            client_name,
+            permissions: keyPermissions
+        });
 
         res.status(201).json({
             message: 'API key generated successfully. Store this key securely — it will not be shown again.',
             key_id: apiKey.id,
             api_key: keyValue,
-            client_name: client_name
+            client_name: client_name,
+            permissions: keyPermissions
         });
 
     } catch (error) {

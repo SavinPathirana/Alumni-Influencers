@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Bid, User, Profile, Degree, Certification, Licence, ProfessionalCourse, Employment } = require('../../models');
+const requireApiKey = require('../../middlewares/apiKeyAuth');
+const checkPermission = require('../../middlewares/checkPermission');
 
 /**
  * @swagger
@@ -84,6 +86,6 @@ const getTodaysFeatured = async (req, res) => {
  *       200:
  *         description: Today's featured alumni profile (or message if none)
  */
-router.get('/today', getTodaysFeatured);
+router.get('/today', requireApiKey, checkPermission('read:alumni_of_day'), getTodaysFeatured);
 
 module.exports = router;
