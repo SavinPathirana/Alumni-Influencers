@@ -1,0 +1,45 @@
+<%- include('partials/head') %>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="bi bi-mortarboard-fill auth-icon"></i>
+            <h1>Create Account</h1>
+            <p>Register with your university email</p>
+        </div>
+
+        <div id="authError" class="alert alert-error" style="display:none;"></div>
+        <div id="authSuccess" class="alert alert-success" style="display:none;"></div>
+
+        <form id="registerForm" class="auth-form">
+            <div class="form-group">
+                <label for="email">University Email</label>
+                <div class="input-wrapper">
+                    <i class="bi bi-envelope"></i>
+                    <input type="email" id="email" name="email" placeholder="you@westminster.ac.uk" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <i class="bi bi-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Min 8 characters" required minlength="8">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="registerBtn">
+                <span>Create Account</span>
+                <i class="bi bi-person-plus"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a href="/login">Sign in</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="/js/auth.js"></script>
+</body>
+</html>

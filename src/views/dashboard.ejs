@@ -1,0 +1,158 @@
+<%- include('partials/head') %>
+
+<div class="app-layout">
+    <%- include('partials/sidebar') %>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h2><i class="bi bi-grid-1x2-fill"></i> Analytics Dashboard</h2>
+            <div class="top-bar-actions">
+                <button class="btn btn-outline" id="exportPdfBtn">
+                    <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar" id="filterBar">
+            <div class="filter-group">
+                <label for="filterProgramme">Programme</label>
+                <select id="filterProgramme">
+                    <option value="">All Programmes</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterYear">Graduation Year</label>
+                <select id="filterYear">
+                    <option value="">All Years</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterSector">Industry Sector</label>
+                <select id="filterSector">
+                    <option value="">All Sectors</option>
+                </select>
+            </div>
+            <button class="btn btn-primary btn-sm" id="applyFilters">
+                <i class="bi bi-funnel"></i> Apply
+            </button>
+            <button class="btn btn-outline btn-sm" id="clearFilters">
+                <i class="bi bi-x-circle"></i> Clear
+            </button>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- 1. Employment by Sector (Bar) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Employment by Industry Sector</h3>
+                    <button class="chart-download" data-chart="sectorChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="sectorChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 2. Alumni by Programme (Pie) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Alumni Distribution by Programme</h3>
+                    <button class="chart-download" data-chart="programmeChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="programmeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. Alumni by Industry (Doughnut) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Alumni by Current Industry</h3>
+                    <button class="chart-download" data-chart="industryChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="industryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 4. Graduation Trends (Line) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Graduation Trends Over Time</h3>
+                    <button class="chart-download" data-chart="gradTrendsChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="gradTrendsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 5. Curriculum Skills Gap (Radar) -->
+            <div class="chart-card chart-card-wide">
+                <div class="chart-header">
+                    <h3>Curriculum Skills Gap Analysis</h3>
+                    <button class="chart-download" data-chart="skillsGapChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="skillsGapChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 6. Most Common Job Titles (Horizontal Bar) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Most Common Job Titles</h3>
+                    <button class="chart-download" data-chart="jobTitlesChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="jobTitlesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 7. Top Employers (Bar) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Top Employers</h3>
+                    <button class="chart-download" data-chart="employersChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="employersChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 8. Geographic Distribution (Polar Area) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Geographic Distribution</h3>
+                    <button class="chart-download" data-chart="geoChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="geoChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="/js/charts.js"></script>
+</body>
+</html>

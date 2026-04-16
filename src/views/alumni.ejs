@@ -1,0 +1,83 @@
+<%- include('partials/head') %>
+
+<div class="app-layout">
+    <%- include('partials/sidebar') %>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h2><i class="bi bi-people-fill"></i> Browse Alumni</h2>
+            <div class="top-bar-actions">
+                <button class="btn btn-outline" id="exportCsvBtn">
+                    <i class="bi bi-filetype-csv"></i> Export CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="alumniProgramme">Programme</label>
+                <select id="alumniProgramme">
+                    <option value="">All Programmes</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="alumniYear">Graduation Year</label>
+                <select id="alumniYear">
+                    <option value="">All Years</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="alumniSector">Industry Sector</label>
+                <select id="alumniSector">
+                    <option value="">All Sectors</option>
+                </select>
+            </div>
+            <button class="btn btn-primary btn-sm" id="alumniApplyFilters">
+                <i class="bi bi-funnel"></i> Apply
+            </button>
+            <button class="btn btn-outline btn-sm" id="alumniClearFilters">
+                <i class="bi bi-x-circle"></i> Clear
+            </button>
+        </div>
+
+        <!-- Alumni Table -->
+        <div class="alumni-table-wrapper">
+            <table class="alumni-table" id="alumniTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Programme</th>
+                        <th>Graduation</th>
+                        <th>Industry</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="alumniTableBody">
+                    <tr>
+                        <td colspan="6" class="loading-cell">
+                            <div class="spinner"></div>
+                            <span>Loading alumni...</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+
+        <!-- Alumni Detail Modal -->
+        <div class="modal-overlay" id="alumniModal" style="display:none;">
+            <div class="modal-card">
+                <button class="modal-close" id="closeModal">&times;</button>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="/js/alumni.js"></script>
+</body>
+</html>

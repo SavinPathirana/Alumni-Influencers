@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
@@ -13,10 +14,29 @@ const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
+//EJS view engine setup
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+//Serve static assets (CSS, JS, images)
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
 //Security middlewares
-app.use(helmet()); //Secure HTTP response headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+            imgSrc: ["'self'", "data:"],
+            connectSrc: ["'self'"]
+        }
+    }
+}));
 app.use(cors());
-app.use(express.json()); //Parse JSON payloads
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 //XSS Protections
 app.use((req, res, next) => {
@@ -71,8 +91,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 }));
 app.use('/uploads', express.static('uploads'));
 
-//Load controllers
+//Load API controllers (mounted at /api/{name})
 require('./lib/boot')(app, { verbose: !module.parent });
+
+//Load page routes (server-rendered EJS pages)
+const pageRoutes = require('./routes/pages');
+app.use('/', pageRoutes);
 
 require('./utils/cronJobs');
 
