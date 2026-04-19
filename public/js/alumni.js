@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_KEY = localStorage.getItem('apiKey') || '';
+    const API_KEY = window.__API_KEY__ || '';
     const headers = { 'x-api-key': API_KEY };
     let currentPage = 1;
 
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${a.graduation_date ? new Date(a.graduation_date).getFullYear() : '—'}</td>
                     <td><span class="badge ${sectorBadge(a.industry_sector)}">${a.industry_sector || '—'}</span></td>
                     <td>${a.location || '—'}</td>
-                    <td><button class="btn-view" onclick="viewAlumni(${a.id})">View</button></td>
+                    <td><button class="btn-view" data-profile-id="${a.id}">View</button></td>
                 </tr>
             `).join('');
 
@@ -108,19 +108,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const pag = document.getElementById('pagination');
         if (totalPages <= 1) { pag.innerHTML = ''; return; }
 
-        let html = `<button ${current === 1 ? 'disabled' : ''} onclick="goToPage(${current - 1})">‹ Prev</button>`;
+        let html = `<button data-page="${current - 1}" ${current === 1 ? 'disabled' : ''}>‹ Prev</button>`;
         for (let i = 1; i <= totalPages; i++) {
-            html += `<button class="${i === current ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            html += `<button data-page="${i}" class="${i === current ? 'active' : ''}">${i}</button>`;
         }
-        html += `<button ${current === totalPages ? 'disabled' : ''} onclick="goToPage(${current + 1})">Next ›</button>`;
+        html += `<button data-page="${current + 1}" ${current === totalPages ? 'disabled' : ''}>Next ›</button>`;
         pag.innerHTML = html;
     }
 
-    //Global navigation
-    window.goToPage = (page) => loadAlumni(page);
+    //Pagination click handler (event delegation)
+    document.getElementById('pagination')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-page]');
+        if (btn && !btn.disabled) {
+            loadAlumni(parseInt(btn.dataset.page));
+        }
+    });
+
+    //View button click handler (event delegation)
+    document.getElementById('alumniTableBody')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-view');
+        if (btn) {
+            viewAlumni(parseInt(btn.dataset.profileId));
+        }
+    });
 
     //View alumni detail modal
-    window.viewAlumni = async (profileId) => {
+    async function viewAlumni(profileId) {
         const modal = document.getElementById('alumniModal');
         const content = document.getElementById('modalContent');
         modal.style.display = 'flex';

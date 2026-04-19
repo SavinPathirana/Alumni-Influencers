@@ -1,0 +1,107 @@
+<%- include('partials/head') %>
+
+<div class="app-layout">
+    <%- include('partials/sidebar') %>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2><i class="bi bi-lightning" style="color:var(--accent)"></i> Blind Bidding</h2>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalBids">—</div>
+                <div class="stat-label">Total Bids</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="winsThisMonth" style="color:var(--success)">—</div>
+                <div class="stat-label">Wins This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="remainingSlots" style="color:var(--accent)">—</div>
+                <div class="stat-label">Remaining Slots</div>
+            </div>
+        </div>
+
+        <!-- Tomorrow's Slot Status -->
+        <div class="content-section" id="tomorrowSlot">
+            <div class="section-title">
+                <i class="bi bi-calendar-check"></i> Tomorrow's Featured Slot
+            </div>
+            <p style="color:var(--text-secondary);font-size:15px;" id="tomorrowStatus">Loading...</p>
+        </div>
+
+        <!-- Place Bid Section -->
+        <div class="content-section">
+            <div class="section-title">
+                <i class="bi bi-plus-circle"></i> Place a New Bid
+            </div>
+            <div id="bidError" class="alert alert-error" style="display:none;"></div>
+            <div id="bidSuccess" class="alert alert-success" style="display:none;"></div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <input type="date" id="bidTargetDate" min="">
+                </div>
+                <div class="form-group">
+                    <label>Bid Amount (£)</label>
+                    <input type="number" id="bidAmount" min="1" step="0.01" placeholder="50.00">
+                </div>
+            </div>
+            <button class="btn btn-primary" id="placeBidBtn">
+                <i class="bi bi-lightning"></i> Place Blind Bid
+            </button>
+            <p style="font-size:13px;color:var(--text-tertiary);margin-top:8px;">
+                <i class="bi bi-eye-slash"></i> This is a blind bid — you cannot see other bids. Winner is selected at midnight.
+            </p>
+        </div>
+
+        <!-- My Bids -->
+        <div class="page-header" style="position:static;border-top:1px solid var(--border);">
+            <h2>My Bids</h2>
+        </div>
+
+        <div id="bidsList">
+            <div class="content-section" style="text-align:center;padding:40px;">
+                <div class="spinner" style="margin:0 auto 12px;"></div>
+                <span style="color:var(--text-secondary)">Loading bids...</span>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Update Bid Modal -->
+<div class="modal-overlay" id="updateBidModal" style="display:none;">
+    <div class="modal-card">
+        <button class="modal-close" id="closeUpdateModal">&times;</button>
+        <h2>Update Bid</h2>
+        <p style="color:var(--text-secondary);font-size:14px;margin:8px 0 16px;">You can only increase your bid amount.</p>
+        <div class="form-group">
+            <label>Current Amount</label>
+            <input type="text" id="currentBidAmount" disabled>
+        </div>
+        <div class="form-group">
+            <label>New Amount (£)</label>
+            <input type="number" id="newBidAmount" min="1" step="0.01">
+        </div>
+        <button class="btn btn-primary btn-block" id="updateBidBtn">Update Bid</button>
+    </div>
+</div>
+
+<!-- Bid Status Modal -->
+<div class="modal-overlay" id="bidStatusModal" style="display:none;">
+    <div class="modal-card">
+        <button class="modal-close" id="closeBidStatusModal">&times;</button>
+        <h2>Bid Status</h2>
+        <div id="bidStatusContent" style="margin-top:16px;"></div>
+    </div>
+</div>
+
+<script>
+    if (!localStorage.getItem('token')) window.location.href = '/login';
+    window.__API_KEY__ = '<%= apiKey %>';
+</script>
+<script src="/js/bidding.js"></script>
+</body>
+</html>

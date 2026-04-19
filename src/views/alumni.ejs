@@ -78,6 +78,14 @@
     </main>
 </div>
 
+<script>
+    //Auth guard
+    if (!localStorage.getItem('token')) {
+        window.location.href = '/login';
+    }
+    //API key injected from server
+    window.__API_KEY__ = '<%= apiKey %>';
+</script>
 <script src="/js/alumni.js"></script>
 </body>
 </html>

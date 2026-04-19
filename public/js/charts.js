@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         '#a855f7', '#d946ef'
     ];
 
-    const COLORS_ALPHA = COLORS.map(c => c + '33');
+    const COLORS_ALPHA = COLORS.map(c => c + '99');
 
     //Store chart instances for cleanup on re-render
     const chartInstances = {};
@@ -386,14 +386,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const chart = chartInstances[chartId];
             if (!chart) return;
 
+            const srcCanvas = chart.canvas;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = srcCanvas.width;
+            tempCanvas.height = srcCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = '#ffffff';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(srcCanvas, 0, 0);
+
             const link = document.createElement('a');
             link.download = `${chartId}.png`;
-            link.href = chart.toBase64Image();
+            link.href = tempCanvas.toDataURL('image/png');
             link.click();
         });
     });
 
-    // ── PDF Export ──
+    //PDF Export
+    const chartTitles = {
+        sectorChart: 'Employment by Industry Sector',
+        programmeChart: 'Alumni Distribution by Programme',
+        industryChart: 'Alumni by Current Industry',
+        gradTrendsChart: 'Graduation Trends Over Time',
+        skillsGapChart: 'Curriculum Skills Gap Analysis',
+        jobTitlesChart: 'Most Common Job Titles',
+        employersChart: 'Top Employers',
+        geoChart: 'Geographic Distribution'
+    };
+
     document.getElementById('exportPdfBtn')?.addEventListener('click', async () => {
         const btn = document.getElementById('exportPdfBtn');
         btn.disabled = true;
@@ -402,28 +422,47 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
-            const charts = document.querySelectorAll('.chart-card');
 
-            pdf.setFontSize(18);
-            pdf.text('Alumni Influencers — Analytics Report', 14, 20);
+            //Title page
+            pdf.setFontSize(22);
+            pdf.setTextColor(30, 41, 59);
+            pdf.text('Alumni Influencers', 14, 25);
+            pdf.setFontSize(14);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('Analytics Report', 14, 34);
             pdf.setFontSize(10);
-            pdf.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+            pdf.text(`Generated: ${new Date().toLocaleString()}`, 14, 44);
 
-            let yPos = 40;
+            let yPos = 60;
 
-            for (const card of charts) {
-                const canvas = await html2canvas(card, { scale: 2, backgroundColor: '#ffffff' });
-                const imgData = canvas.toDataURL('image/png');
+            //Render each chart
+            const chartIds = Object.keys(chartTitles);
+            for (const chartId of chartIds) {
+                const chart = chartInstances[chartId];
+                if (!chart) continue;
+
+                const title = chartTitles[chartId];
+                const imgData = chart.toBase64Image('image/png', 1);
+
+                const canvas = chart.canvas;
                 const imgWidth = 180;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const imgHeight = (canvas.height / canvas.width) * imgWidth;
 
-                if (yPos + imgHeight > 280) {
+                //Check if we need a new page
+                if (yPos + imgHeight + 10 > 280) {
                     pdf.addPage();
                     yPos = 20;
                 }
 
+                //Chart title
+                pdf.setFontSize(13);
+                pdf.setTextColor(30, 41, 59);
+                pdf.text(title, 14, yPos);
+                yPos += 6;
+
+                //Chart image
                 pdf.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
-                yPos += imgHeight + 10;
+                yPos += imgHeight + 14;
             }
 
             pdf.save('alumni-analytics-report.pdf');
