@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (res.ok) {
                     showSuccess(data.message || 'Account created! Check your email to verify.');
+                    setTimeout(() => window.location.href = '/verify-email', 2000);
                 } else {
                     showError(data.error || 'Registration failed.');
                 }

@@ -1,0 +1,73 @@
+<%- include('partials/head') %>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="bi bi-envelope-check auth-icon"></i>
+            <h1>Verify Your Email</h1>
+            <p>Paste the verification token sent to your email</p>
+        </div>
+
+        <div id="authError" class="alert alert-error" style="display:none;"></div>
+        <div id="authSuccess" class="alert alert-success" style="display:none;"></div>
+
+        <form id="verifyForm" class="auth-form">
+            <div class="form-group">
+                <label for="token">Verification Token</label>
+                <div class="input-wrapper">
+                    <i class="bi bi-shield-check"></i>
+                    <input type="text" id="token" name="token" placeholder="Paste the token from your email" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="verifyBtn">
+                <span>Verify Email</span>
+                <i class="bi bi-check-circle"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer" style="margin-top:16px;">
+            <p>Already verified? <a href="/login">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = document.getElementById('token').value.trim();
+    const errorDiv = document.getElementById('authError');
+    const successDiv = document.getElementById('authSuccess');
+    const btn = document.getElementById('verifyBtn');
+
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span>Verifying...</span>';
+
+    try {
+        const res = await fetch(`/api/auth/verify/${encodeURIComponent(token)}`, {
+            method: 'GET',
+            headers: { 'x-api-key': '<%= apiKey %>' }
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            successDiv.textContent = data.message || 'Email verified! Redirecting to login...';
+            successDiv.style.display = 'block';
+            setTimeout(() => window.location.href = '/login', 2000);
+        } else {
+            errorDiv.textContent = data.error || 'Verification failed.';
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        errorDiv.textContent = 'Network error. Please try again.';
+        errorDiv.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Verify Email</span><i class="bi bi-check-circle"></i>';
+    }
+});
+</script>
+</body>
+</html>

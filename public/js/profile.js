@@ -104,6 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) { console.error('Employment error:', err); }
     }
 
+    async function loadCourses() {
+        try {
+            const res = await fetch('/api/profile/me/professional-courses', { headers });
+            if (!res.ok) return;
+            const data = await res.json();
+            renderList('coursesList', data.courses || data, 'course');
+        } catch (err) { console.error('Courses error:', err); }
+    }
+
     async function loadCertifications() {
         try {
             const res = await fetch('/api/profile/me/certifications', { headers });
@@ -144,6 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 title = item.title;
                 subtitle = item.completion_date || '';
                 extra = item.url ? `<a href="${item.url}" target="_blank" style="font-size:13px;color:var(--accent)"><i class="bi bi-link-45deg"></i> URL</a>` : '';
+            } else if (type === 'course') {
+                title = item.title;
+                subtitle = item.completion_date || '';
+                extra = item.url ? `<a href="${item.url}" target="_blank" style="font-size:13px;color:var(--accent)"><i class="bi bi-link-45deg"></i> URL</a>` : '';
             } else if (type === 'licence') {
                 title = item.title;
                 subtitle = item.completion_date || '';
@@ -172,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const id = btn.dataset.id;
                 let endpoint = '';
                 if (t === 'degree') endpoint = `/api/profile/me/degrees/${id}`;
+                else if (t === 'course') endpoint = `/api/profile/me/professional-courses/${id}`;
                 else if (t === 'employment') endpoint = `/api/profile/me/employment/${id}`;
                 else if (t === 'certification') endpoint = `/api/profile/me/certifications/${id}`;
                 else if (t === 'licence') endpoint = `/api/profile/me/licences/${id}`;
@@ -278,6 +292,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group"><label>End Date</label><input type="date" id="modalField4"></div>
                 <div class="form-group"><label>Industry Sector</label><input type="text" id="modalField5" placeholder="Technology"></div>
             `;
+        } else if (type === 'course') {
+            modalTitle.textContent = 'Add Professional Course';
+            modalForm.innerHTML = `
+                <div class="form-group"><label>Course Title</label><input type="text" id="modalField1" placeholder="Advanced React Patterns" required></div>
+                <div class="form-group"><label>URL</label><input type="url" id="modalField2" placeholder="https://course-provider.com" required></div>
+                <div class="form-group"><label>Completion Date</label><input type="date" id="modalField3"></div>
+            `;
         } else if (type === 'certification') {
             modalTitle.textContent = 'Add Certification';
             modalForm.innerHTML = `
@@ -296,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('addDegreeBtn')?.addEventListener('click', () => openAddModal('degree'));
+    document.getElementById('addCourseBtn')?.addEventListener('click', () => openAddModal('course'));
     document.getElementById('addEmploymentBtn')?.addEventListener('click', () => openAddModal('employment'));
     document.getElementById('addCertBtn')?.addEventListener('click', () => openAddModal('certification'));
     document.getElementById('addLicenceBtn')?.addEventListener('click', () => openAddModal('licence'));
@@ -311,6 +333,13 @@ document.addEventListener('DOMContentLoaded', () => {
             body = {
                 title: document.getElementById('modalField1').value,
                 official_url: document.getElementById('modalField2').value,
+                completion_date: document.getElementById('modalField3').value || null
+            };
+        } else if (currentAddType === 'course') {
+            endpoint = '/api/profile/me/professional-courses';
+            body = {
+                title: document.getElementById('modalField1').value,
+                url: document.getElementById('modalField2').value,
                 completion_date: document.getElementById('modalField3').value || null
             };
         } else if (currentAddType === 'employment') {
@@ -355,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadAll() {
         loadProfile();
         loadDegrees();
+        loadCourses();
         loadEmployment();
         loadCertifications();
         loadLicences();

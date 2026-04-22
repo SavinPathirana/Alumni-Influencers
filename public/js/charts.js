@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_KEY = localStorage.getItem('apiKey') || '';
+    const API_KEY = window.__API_KEY__ || localStorage.getItem('apiKey') || '';
     const headers = { 'x-api-key': API_KEY };
 
     //Color palettes for charts
@@ -51,6 +51,50 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (err) {
             console.error('Failed to load filters:', err);
+        }
+    }
+
+    //Load Alumni of the Day
+    async function loadAlumniOfDay() {
+        const container = document.getElementById('alumniOfDay');
+        if (!container) return;
+        try {
+            const res = await fetch('/api/featured/today', { headers });
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+
+            if (!data.featured) {
+                container.innerHTML = `
+                    <div style="text-align:center;width:100%;padding:12px 0;">
+                        <i class="bi bi-calendar-x" style="font-size:28px;color:var(--text-tertiary)"></i>
+                        <p style="color:var(--text-secondary);margin-top:6px;font-size:14px;">No featured alumni today. Place a bid to be featured!</p>
+                    </div>`;
+                return;
+            }
+
+            const a = data.alumni;
+            const degrees = (a.degrees || []).map(d => d.title).join(', ') || 'N/A';
+            const employment = (a.employment_history || []).map(e => `${e.role} at ${e.company}`).join(', ') || 'N/A';
+
+            container.innerHTML = `
+                <img src="${a.profile_image_url || '/uploads/default.png'}" alt="Featured Alumni"
+                     style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #f5c542;flex-shrink:0;">
+                <div style="flex:1;min-width:0;">
+                    <h3 style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">
+                        <i class="bi bi-trophy-fill" style="color:#f5c542;margin-right:4px;"></i>
+                        ${a.email}
+                    </h3>
+                    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:4px;">${a.bio || 'No bio available.'}</p>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-tertiary);">
+                        <span><i class="bi bi-mortarboard"></i> ${degrees}</span>
+                        <span><i class="bi bi-briefcase"></i> ${employment}</span>
+                        ${a.linkedin_url ? `<a href="${a.linkedin_url}" target="_blank" style="color:var(--accent);"><i class="bi bi-linkedin"></i> LinkedIn</a>` : ''}
+                    </div>
+                </div>
+            `;
+        } catch (err) {
+            console.error('Alumni of Day error:', err);
+            container.innerHTML = `<p style="color:var(--text-tertiary);font-size:14px;">Unable to load featured alumni.</p>`;
         }
     }
 
@@ -477,5 +521,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Init ──
     loadFilters();
+    loadAlumniOfDay();
     renderAllCharts();
 });

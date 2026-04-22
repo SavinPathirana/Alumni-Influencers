@@ -1,148 +1,167 @@
 <%- include('partials/head') %>
 
-<div class="app-layout">
-    <%- include('partials/sidebar') %>
+    <div class="app-layout">
+        <%- include('partials/sidebar') %>
 
-    <main class="main-content">
-        <div class="page-header">
-            <h2>My Profile</h2>
-            <div class="top-bar-actions">
-                <button class="btn btn-primary btn-sm" id="saveProfileBtn">Save Changes</button>
-            </div>
-        </div>
-
-        <!-- Profile Completion -->
-        <div class="content-section">
-            <div style="display:flex;align-items:center;gap:16px;">
-                <img class="profile-avatar" id="profileAvatar" src="/uploads/default.png" alt="Profile">
-                <div style="flex:1">
-                    <h3 id="profileName" style="font-size:20px;font-weight:700;">Loading...</h3>
-                    <p style="color:var(--text-secondary);font-size:15px;" id="profileEmail"></p>
-                    <div class="profile-completion">
-                        <div class="profile-completion-bar" id="completionBar" style="width:0%"></div>
-                    </div>
-                    <p style="font-size:13px;color:var(--text-tertiary);margin-top:4px;" id="completionText">0% complete</p>
-                </div>
-                <label class="btn btn-outline btn-sm" style="cursor:pointer">
-                    <i class="bi bi-camera"></i> Upload Photo
-                    <input type="file" id="avatarUpload" accept="image/*" style="display:none">
-                </label>
-            </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" data-tab="basic">Basic Info</button>
-            <button class="tab" data-tab="education">Education</button>
-            <button class="tab" data-tab="employment">Employment</button>
-            <button class="tab" data-tab="certifications">Certifications</button>
-            <button class="tab" data-tab="licences">Licences</button>
-        </div>
-
-        <!-- Basic Info Tab -->
-        <div class="tab-content active" id="tab-basic">
-            <div class="content-section">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>First Name</label>
-                        <input type="text" id="firstName" placeholder="John">
-                    </div>
-                    <div class="form-group">
-                        <label>Last Name</label>
-                        <input type="text" id="lastName" placeholder="Smith">
+            <main class="main-content">
+                <div class="page-header">
+                    <h2>My Profile</h2>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-primary btn-sm" id="saveProfileBtn">Save Changes</button>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Programme</label>
-                        <input type="text" id="programme" placeholder="BSc Computer Science">
+
+                <!-- Profile Completion -->
+                <div class="content-section">
+                    <div style="display:flex;align-items:center;gap:16px;">
+                        <img class="profile-avatar" id="profileAvatar" src="/uploads/default.png" alt="Profile">
+                        <div style="flex:1">
+                            <h3 id="profileName" style="font-size:20px;font-weight:700;">Loading...</h3>
+                            <p style="color:var(--text-secondary);font-size:15px;" id="profileEmail"></p>
+                            <div class="profile-completion">
+                                <div class="profile-completion-bar" id="completionBar" style="width:0%"></div>
+                            </div>
+                            <p style="font-size:13px;color:var(--text-tertiary);margin-top:4px;" id="completionText">0%
+                                complete</p>
+                        </div>
+                        <label class="btn btn-outline btn-sm" style="cursor:pointer">
+                            <i class="bi bi-camera"></i> Upload Photo
+                            <input type="file" id="avatarUpload" accept="image/*" style="display:none">
+                        </label>
                     </div>
-                    <div class="form-group">
-                        <label>Graduation Date</label>
-                        <input type="date" id="graduationDate">
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="basic">Basic Info</button>
+                    <button class="tab" data-tab="education">Education</button>
+                    <button class="tab" data-tab="courses">Courses</button>
+                    <button class="tab" data-tab="employment">Employment</button>
+                    <button class="tab" data-tab="certifications">Certifications</button>
+                    <button class="tab" data-tab="licences">Licences</button>
+                </div>
+
+                <!-- Basic Info Tab -->
+                <div class="tab-content active" id="tab-basic">
+                    <div class="content-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" id="firstName" placeholder="John">
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" id="lastName" placeholder="Smith">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Programme</label>
+                                <input type="text" id="programme" placeholder="BSc Computer Science">
+                            </div>
+                            <div class="form-group">
+                                <label>Graduation Date</label>
+                                <input type="date" id="graduationDate">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Industry Sector</label>
+                                <input type="text" id="industrySector" placeholder="Technology">
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <input type="text" id="location" placeholder="London, UK">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Bio</label>
+                            <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>LinkedIn URL</label>
+                            <input type="url" id="linkedinUrl" placeholder="https://linkedin.com/in/yourname">
+                        </div>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Industry Sector</label>
-                        <input type="text" id="industrySector" placeholder="Technology">
+
+                <!-- Education Tab -->
+                <div class="tab-content" id="tab-education">
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="bi bi-mortarboard"></i> Degrees
+                            <button class="btn btn-primary btn-sm" id="addDegreeBtn" style="margin-left:auto">+
+                                Add</button>
+                        </div>
+                        <div id="degreesList"></div>
                     </div>
-                    <div class="form-group">
-                        <label>Location</label>
-                        <input type="text" id="location" placeholder="London, UK">
+                </div>
+
+                <!-- Courses Tab -->
+                <div class="tab-content" id="tab-courses">
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="bi bi-journal-bookmark-fill"></i> Professional Courses
+                            <button class="btn btn-primary btn-sm" id="addCourseBtn" style="margin-left:auto">+ Add</button>
+                        </div>
+                        <div id="coursesList"></div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Bio</label>
-                    <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>LinkedIn URL</label>
-                    <input type="url" id="linkedinUrl" placeholder="https://linkedin.com/in/yourname">
-                </div>
-            </div>
-        </div>
 
-        <!-- Education Tab -->
-        <div class="tab-content" id="tab-education">
-            <div class="content-section">
-                <div class="section-title">
-                    <i class="bi bi-mortarboard"></i> Degrees
-                    <button class="btn btn-primary btn-sm" id="addDegreeBtn" style="margin-left:auto">+ Add</button>
+                <!-- Employment Tab -->
+                <div class="tab-content" id="tab-employment">
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="bi bi-briefcase"></i> Employment History
+                            <button class="btn btn-primary btn-sm" id="addEmploymentBtn" style="margin-left:auto">+
+                                Add</button>
+                        </div>
+                        <div id="employmentList"></div>
+                    </div>
                 </div>
-                <div id="degreesList"></div>
-            </div>
-        </div>
 
-        <!-- Employment Tab -->
-        <div class="tab-content" id="tab-employment">
-            <div class="content-section">
-                <div class="section-title">
-                    <i class="bi bi-briefcase"></i> Employment History
-                    <button class="btn btn-primary btn-sm" id="addEmploymentBtn" style="margin-left:auto">+ Add</button>
+                <!-- Certifications Tab -->
+                <div class="tab-content" id="tab-certifications">
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="bi bi-patch-check"></i> Certifications
+                            <button class="btn btn-primary btn-sm" id="addCertBtn" style="margin-left:auto">+
+                                Add</button>
+                        </div>
+                        <div id="certsList"></div>
+                    </div>
                 </div>
-                <div id="employmentList"></div>
-            </div>
-        </div>
 
-        <!-- Certifications Tab -->
-        <div class="tab-content" id="tab-certifications">
-            <div class="content-section">
-                <div class="section-title">
-                    <i class="bi bi-patch-check"></i> Certifications
-                    <button class="btn btn-primary btn-sm" id="addCertBtn" style="margin-left:auto">+ Add</button>
+                <!-- Licences Tab -->
+                <div class="tab-content" id="tab-licences">
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="bi bi-award"></i> Licences
+                            <button class="btn btn-primary btn-sm" id="addLicenceBtn" style="margin-left:auto">+
+                                Add</button>
+                        </div>
+                        <div id="licencesList"></div>
+                    </div>
                 </div>
-                <div id="certsList"></div>
-            </div>
-        </div>
 
-        <!-- Licences Tab -->
-        <div class="tab-content" id="tab-licences">
-            <div class="content-section">
-                <div class="section-title">
-                    <i class="bi bi-award"></i> Licences
-                    <button class="btn btn-primary btn-sm" id="addLicenceBtn" style="margin-left:auto">+ Add</button>
+                <!-- Add/Edit Modal -->
+                <div class="modal-overlay" id="profileModal" style="display:none;">
+                    <div class="modal-card">
+                        <button class="modal-close" id="closeProfileModal">&times;</button>
+                        <h2 id="modalTitle">Add Item</h2>
+                        <form id="modalForm" style="margin-top:16px;"></form>
+                        <button class="btn btn-primary btn-block" id="modalSaveBtn"
+                            style="margin-top:16px;">Save</button>
+                    </div>
                 </div>
-                <div id="licencesList"></div>
-            </div>
-        </div>
+            </main>
+    </div>
 
-        <!-- Add/Edit Modal -->
-        <div class="modal-overlay" id="profileModal" style="display:none;">
-            <div class="modal-card">
-                <button class="modal-close" id="closeProfileModal">&times;</button>
-                <h2 id="modalTitle">Add Item</h2>
-                <form id="modalForm" style="margin-top:16px;"></form>
-                <button class="btn btn-primary btn-block" id="modalSaveBtn" style="margin-top:16px;">Save</button>
-            </div>
-        </div>
-    </main>
-</div>
+    <script>
+        if (!localStorage.getItem('token')) window.location.href = '/login';
+        window.__API_KEY__ = '<%= apiKey %>';
+    </script>
+    <script src="/js/profile.js"></script>
+    </body>
 
-<script>
-    if (!localStorage.getItem('token')) window.location.href = '/login';
-    window.__API_KEY__ = '<%= apiKey %>';
-</script>
-<script src="/js/profile.js"></script>
-</body>
-</html>
+    </html>

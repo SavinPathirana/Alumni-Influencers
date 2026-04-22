@@ -21,6 +21,14 @@ router.get('/reset-password', (req, res) => {
     res.render('reset-password', { title: 'Reset Password — Alumni Influencers' });
 });
 
+//Verify email page
+router.get('/verify-email', (req, res) => {
+    res.render('verify-email', {
+        title: 'Verify Email — Alumni Influencers',
+        apiKey: process.env.AR_CLIENT_API_KEY || ''
+    });
+});
+
 //Dashboard page
 router.get('/dashboard', (req, res) => {
     res.render('dashboard', {
