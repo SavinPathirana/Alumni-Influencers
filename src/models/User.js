@@ -31,6 +31,16 @@ module.exports = (sequelize) => {
         reset_token_expiry: {
             type: DataTypes.DATE,
             allowNull: true
+        },
+        role: {
+            type: DataTypes.ENUM('alumni', 'sponsor', 'admin'),
+            defaultValue: 'alumni',
+            allowNull: false
+        },
+        wallet_balance: {
+            type: DataTypes.DECIMAL(10, 2),
+            defaultValue: 0.00,
+            allowNull: false
         }
     }, {
         tableName: 'users',

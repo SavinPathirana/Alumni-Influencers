@@ -61,9 +61,34 @@ router.get('/bidding', (req, res) => {
     });
 });
 
+//Sponsorships page
+router.get('/sponsorships', (req, res) => {
+    res.render('sponsorships', {
+        title: 'Sponsorships — Alumni Influencers',
+        apiKey: process.env.AR_CLIENT_API_KEY || ''
+    });
+});
+
+//Wallet page
+router.get('/wallet', (req, res) => {
+    res.render('wallet', {
+        title: 'Wallet — Alumni Influencers',
+        apiKey: process.env.AR_CLIENT_API_KEY || ''
+    });
+});
+
+//API Keys management page (admin only — enforced server-side via API)
+router.get('/api-keys', (req, res) => {
+    res.render('api-keys', {
+        title: 'API Keys — Alumni Influencers',
+        apiKey: process.env.AR_CLIENT_API_KEY || ''
+    });
+});
+
 //Root redirect to login
 router.get('/', (req, res) => {
     res.redirect('/login');
 });
 
 module.exports = router;
+

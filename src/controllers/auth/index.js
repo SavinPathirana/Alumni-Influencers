@@ -44,15 +44,17 @@ const register = async (req, res) => {
         //Generate verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
-        //Save to database
+        //Save to database (role defaults to 'alumni' if not specified)
         const user = await User.create({
             email,
             password_hash: passwordHash,
             verification_token: verificationToken
         });
 
-        //Create empty profile for the user
-        await Profile.create({ user_id: user.id });
+        //Create empty profile only for alumni users (sponsors don't need alumni profiles)
+        if (user.role === 'alumni') {
+            await Profile.create({ user_id: user.id });
+        }
 
         //Send verification email
         await sendMail(
@@ -129,9 +131,9 @@ const login = async (req, res) => {
             return res.status(403).json({ error: 'Please verify your email before logging in.' });
         }
 
-        //Generate JWT session token
+        //Generate JWT session token (includes role for RBAC)
         const token = jwt.sign(
-            { userId: user.id, email: user.email },
+            { userId: user.id, email: user.email, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );

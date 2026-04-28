@@ -36,6 +36,8 @@ const options = {
                         email: { type: 'string' },
                         password_hash: { type: 'string' },
                         is_verified: { type: 'boolean' },
+                        role: { type: 'string', enum: ['alumni', 'sponsor', 'admin'] },
+                        wallet_balance: { type: 'number' },
                         created_at: { type: 'string', format: 'date-time' }
                     }
                 },
@@ -110,6 +112,8 @@ const options = {
                         target_date: { type: 'string', format: 'date' },
                         bid_amount: { type: 'number' },
                         status: { type: 'string', enum: ['pending', 'won', 'lost'] },
+                        sponsorship_used: { type: 'number' },
+                        wallet_used: { type: 'number' },
                         created_at: { type: 'string', format: 'date-time' }
                     }
                 },
@@ -133,6 +137,31 @@ const options = {
                         method: { type: 'string' },
                         timestamp: { type: 'string', format: 'date-time' }
                     }
+                },
+                Sponsor: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        name: { type: 'string' },
+                        logo_url: { type: 'string' },
+                        contact_email: { type: 'string' },
+                        total_budget: { type: 'number' },
+                        user_id: { type: 'integer' },
+                        created_at: { type: 'string', format: 'date-time' }
+                    }
+                },
+                SponsorshipOffer: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        sponsor_id: { type: 'integer' },
+                        user_id: { type: 'integer' },
+                        credential_type: { type: 'string', enum: ['Certification', 'Licence', 'ProfessionalCourse'] },
+                        credential_id: { type: 'integer' },
+                        offer_amount: { type: 'number' },
+                        status: { type: 'string', enum: ['pending', 'accepted', 'rejected'] },
+                        created_at: { type: 'string', format: 'date-time' }
+                    }
                 }
             },
         },
@@ -151,4 +180,4 @@ const options = {
 
 const swaggerSpec = swaggerJsdoc(options);
 
-module.exports = swaggerSpec;
+module.exports = swaggerSpec;

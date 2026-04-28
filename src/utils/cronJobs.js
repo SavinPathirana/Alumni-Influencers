@@ -1,10 +1,10 @@
 const cron = require('node-cron');
-const { Bid, User, Profile } = require('../models');
+const { Bid, User, Profile, SponsorshipOffer, sequelize } = require('../models');
 const { Op, literal } = require('sequelize');
 const sendMail = require('./mailer');
 
 //Runs at 6 PM every day to resolve the daily bids
-cron.schedule('00 18 * * *', async () => {
+cron.schedule('36 01 * * *', async () => {
     console.log('[CRON] Starting daily blind bid resolution...');
 
     try {
@@ -30,7 +30,7 @@ cron.schedule('00 18 * * *', async () => {
             //Get bids for the specific date, highest amount first
             const bids = await Bid.findAll({
                 where: { target_date: targetDate, status: 'pending' },
-                include: [{ model: User, attributes: ['email'] }],
+                include: [{ model: User, attributes: ['id', 'email', 'wallet_balance'] }],
                 order: [['bid_amount', 'DESC'], ['created_at', 'ASC']]
             });
 
@@ -47,6 +47,55 @@ cron.schedule('00 18 * * *', async () => {
                     by: 1,
                     where: { user_id: winningBid.user_id }
                 });
+
+                //Fund Deduction Logic
+                const bidAmount = parseFloat(winningBid.bid_amount);
+                const walletBalance = parseFloat(winningBid.User.wallet_balance) || 0;
+
+                //Get all accepted sponsorship offers for this user
+                const acceptedOffers = await SponsorshipOffer.findAll({
+                    where: { user_id: winningBid.user_id, status: 'accepted' },
+                    order: [['offer_amount', 'ASC']]
+                });
+
+                const sponsorshipTotal = acceptedOffers.reduce((sum, o) => sum + parseFloat(o.offer_amount), 0);
+
+                //Calculate how much comes from sponsorships vs wallet
+                const sponsorshipUsed = Math.min(sponsorshipTotal, bidAmount);
+                const walletUsed = Math.max(0, bidAmount - sponsorshipUsed);
+
+                //Deduct from wallet (only if bid exceeds sponsorship backing)
+                if (walletUsed > 0) {
+                    const newBalance = Math.max(0, walletBalance - walletUsed);
+                    await User.update(
+                        { wallet_balance: newBalance },
+                        { where: { id: winningBid.user_id } }
+                    );
+                    console.log(`[CRON] Deducted £${walletUsed.toFixed(2)} from user ${winningBid.user_id} wallet (was £${walletBalance.toFixed(2)}, now £${newBalance.toFixed(2)})`);
+                }
+
+                //Mark sponsorship offers as 'used' (consume them up to the bid amount)
+                if (sponsorshipUsed > 0) {
+                    let remaining = sponsorshipUsed;
+                    for (const offer of acceptedOffers) {
+                        if (remaining <= 0) break;
+                        const offerAmount = parseFloat(offer.offer_amount);
+                        if (offerAmount <= remaining) {
+                            //Fully consumed
+                            await offer.update({ status: 'used' });
+                            remaining -= offerAmount;
+                        } else {
+                            //Partially consumed — reduce the offer amount to the leftover
+                            await offer.update({
+                                offer_amount: offerAmount - remaining,
+                            });
+                            remaining = 0;
+                        }
+                    }
+                    console.log(`[CRON] Consumed £${sponsorshipUsed.toFixed(2)} of sponsorship backing for user ${winningBid.user_id}`);
+                }
+
+                console.log(`[CRON] Bid £${bidAmount.toFixed(2)} resolved — Sponsorship used: £${sponsorshipUsed.toFixed(2)}, Wallet used: £${walletUsed.toFixed(2)}, Remaining backing: £${(sponsorshipTotal - sponsorshipUsed).toFixed(2)}`);
 
                 //Update the losers
                 if (losingBidIds.length > 0) {

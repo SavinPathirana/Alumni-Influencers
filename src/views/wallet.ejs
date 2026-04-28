@@ -1,0 +1,67 @@
+<%- include('partials/head') %>
+
+<div class="app-layout">
+    <%- include('partials/sidebar') %>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2><i class="bi bi-wallet2" style="color:var(--accent)"></i> My Wallet</h2>
+        </div>
+
+        <!-- Wallet Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="walletBalance" style="color:var(--success)">—</div>
+                <div class="stat-label">Wallet Balance (£)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="sponsorshipBacking" style="color:var(--accent)">—</div>
+                <div class="stat-label">Sponsorship Backing (£)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingReservation" style="color:var(--error)">—</div>
+                <div class="stat-label">Reserved by Bids (£)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalAvailable" style="color:var(--warning)">—</div>
+                <div class="stat-label">Total Available (£)</div>
+            </div>
+        </div>
+
+        <!-- How it works -->
+        <div class="content-section">
+            <div class="section-title">
+                <i class="bi bi-info-circle"></i> How Sponsorship Payouts Work
+            </div>
+            <div style="color:var(--text-secondary);font-size:14px;line-height:1.7;">
+                <p><strong>1.</strong> Sponsors offer you money to endorse their certifications, licences, or courses.</p>
+                <p><strong>2.</strong> Accept offers to build your <em>Sponsorship Backing</em>.</p>
+                <p><strong>3.</strong> Use your backing to place bids for the Alumni of the Day slot.</p>
+                <p><strong>4.</strong> If you win with a bid <em>lower</em> than your total backing, you <strong>pocket the difference</strong>!</p>
+                <p style="margin-top:12px;padding:10px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-weight:500;">
+                    <i class="bi bi-lightbulb"></i> Example: £500 backing, £250 bid = £250 pocketed into your wallet!
+                </p>
+            </div>
+        </div>
+
+        <!-- Offer Breakdown -->
+        <div class="content-section">
+            <div class="section-title">
+                <i class="bi bi-pie-chart"></i> Sponsorship Breakdown
+            </div>
+            <div id="offerBreakdown">
+                <p style="color:var(--text-secondary);font-size:14px;">
+                    <span id="acceptedCount">0</span> accepted offer(s) · <span id="pendingCount">0</span> pending offer(s) · <span id="usedCount">0</span> used offer(s)
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    if (!localStorage.getItem('token')) window.location.href = '/login';
+    window.__API_KEY__ = '<%= apiKey %>';
+</script>
+<script src="/js/wallet.js"></script>
+</body>
+</html>

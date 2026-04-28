@@ -1,18 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { Bid, Profile, User } = require('../../models');
+const { Bid, Profile, User, SponsorshipOffer } = require('../../models');
 const { Op, fn, col, literal } = require('sequelize');
 const authenticateToken = require('../../middlewares/authMiddleware');
+const checkRole = require('../../middlewares/checkRole');
 
 /**
  * @swagger
  * tags:
  *   name: Bidding
- *   description: Blind bidding system for daily feature slots
+ *   description: Blind bidding system for daily feature slots (alumni only)
  */
 
-//Secure all bidding routes
+//Secure all bidding routes — alumni only
 router.use(authenticateToken);
+router.use(checkRole('alumni'));
 
 //Controller Functions
 
@@ -63,14 +65,47 @@ const placeBid = async (req, res) => {
             });
         }
 
-        //Insert the Bid
+        //Fund Validation — check alumni can afford this bid
+        const user = await User.findByPk(userId);
+        const walletBalance = parseFloat(user.wallet_balance) || 0;
+
+        const sponsorshipBacking = parseFloat(await SponsorshipOffer.sum('offer_amount', {
+            where: { user_id: userId, status: 'accepted' }
+        })) || 0;
+
+        const totalAvailable = walletBalance + sponsorshipBacking;
+
+        if (bid_amount > totalAvailable) {
+            return res.status(400).json({
+                error: 'Insufficient funds. Your bid exceeds your available balance.',
+                wallet_balance: walletBalance,
+                sponsorship_backing: sponsorshipBacking,
+                total_available: totalAvailable,
+                bid_amount: parseFloat(bid_amount)
+            });
+        }
+
+        //Calculate how much comes from sponsorship vs wallet
+        const sponsorshipUsed = Math.min(sponsorshipBacking, parseFloat(bid_amount));
+        const walletUsed = parseFloat(bid_amount) - sponsorshipUsed;
+
+        //Insert the Bid with fund breakdown
         const bid = await Bid.create({
-            user_id: userId, target_date, bid_amount, status: 'pending'
+            user_id: userId,
+            target_date,
+            bid_amount,
+            status: 'pending',
+            sponsorship_used: sponsorshipUsed,
+            wallet_used: walletUsed
         });
 
         res.status(201).json({
             message: 'Blind bid placed successfully.',
-            bidId: bid.id
+            bidId: bid.id,
+            fund_breakdown: {
+                sponsorship_used: sponsorshipUsed,
+                wallet_used: walletUsed
+            }
         });
 
     } catch (error) {

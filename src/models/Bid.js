@@ -22,6 +22,16 @@ module.exports = (sequelize) => {
         status: {
             type: DataTypes.ENUM('pending', 'won', 'lost'),
             defaultValue: 'pending'
+        },
+        sponsorship_used: {
+            type: DataTypes.DECIMAL(10, 2),
+            defaultValue: 0.00,
+            comment: 'How much sponsor money funded this bid'
+        },
+        wallet_used: {
+            type: DataTypes.DECIMAL(10, 2),
+            defaultValue: 0.00,
+            comment: 'How much personal wallet money funded this bid'
         }
     }, {
         tableName: 'bids',

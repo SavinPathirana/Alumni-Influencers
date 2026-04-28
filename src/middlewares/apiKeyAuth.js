@@ -1,7 +1,45 @@
 const { ApiKey, ApiUsageLog } = require('../models');
+const jwt = require('jsonwebtoken');
 
 const requireApiKey = async (req, res, next) => {
-    
+
+    //Skip API key check if a valid JWT Bearer token is present.
+    //This allows internal JWT-authenticated routes (sponsorships, wallet, keys, auth)
+    //to work without an API key, while external analytics consumers still need one.
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+            jwt.verify(token, process.env.JWT_SECRET);
+            //Valid JWT — grant all permissions and skip API key check
+            req.apiPermissions = ['read:alumni', 'read:analytics', 'read:alumni_of_day'];
+            req.jwtAuthenticated = true;
+            return next();
+        } catch (e) {
+            //Invalid JWT — fall through to API key check
+        }
+    }
+
+    //Also check for JWT in cookies (HttpOnly cookie set at login)
+    const cookieHeader = req.headers.cookie;
+    if (cookieHeader) {
+        const cookies = cookieHeader.split(';').reduce((acc, item) => {
+            const parts = item.split('=');
+            if (parts.length >= 2) acc[parts[0].trim()] = parts[1].trim();
+            return acc;
+        }, {});
+        if (cookies['token']) {
+            try {
+                jwt.verify(cookies['token'], process.env.JWT_SECRET);
+                req.apiPermissions = ['read:alumni', 'read:analytics', 'read:alumni_of_day'];
+                req.jwtAuthenticated = true;
+                return next();
+            } catch (e) {
+                //Invalid cookie JWT — fall through to API key check
+            }
+        }
+    }
+
     const providedKey = req.header('x-api-key');
 
     if (!providedKey) {

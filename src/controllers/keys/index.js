@@ -3,15 +3,19 @@ const router = express.Router();
 const crypto = require('crypto');
 const { ApiKey, ApiUsageLog, sequelize } = require('../../models');
 const { fn, col, literal } = require('sequelize');
+const authenticateToken = require('../../middlewares/authMiddleware');
+const checkRole = require('../../middlewares/checkRole');
 
 /**
  * @swagger
  * tags:
  *   name: API Keys
- *   description: Developer API key management (generate, list, revoke, usage statistics)
+ *   description: Developer API key management (admin only — generate, list, revoke, usage statistics)
  */
 
-//Controller Functions
+//All key management routes require admin authentication
+router.use(authenticateToken);
+router.use(checkRole('admin'));
 
 const generateKey = async (req, res) => {
     try {

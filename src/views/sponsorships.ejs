@@ -1,0 +1,47 @@
+<%- include('partials/head') %>
+
+<div class="app-layout">
+    <%- include('partials/sidebar') %>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2><i class="bi bi-cash-coin" style="color:var(--accent)"></i> Sponsorships</h2>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="pendingOffers" style="color:var(--warning)">—</div>
+                <div class="stat-label">Pending Offers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="acceptedOffers" style="color:var(--success)">—</div>
+                <div class="stat-label">Accepted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalBacking" style="color:var(--accent)">—</div>
+                <div class="stat-label">Total Backing (£)</div>
+            </div>
+        </div>
+
+        <!-- Offers List -->
+        <div class="page-header" style="position:static;border-top:1px solid var(--border);">
+            <h2>My Sponsorship Offers</h2>
+        </div>
+
+        <div id="offersList">
+            <div class="content-section" style="text-align:center;padding:40px;">
+                <div class="spinner" style="margin:0 auto 12px;"></div>
+                <span style="color:var(--text-secondary)">Loading offers...</span>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    if (!localStorage.getItem('token')) window.location.href = '/login';
+    window.__API_KEY__ = '<%= apiKey %>';
+</script>
+<script src="/js/sponsorships.js"></script>
+</body>
+</html>

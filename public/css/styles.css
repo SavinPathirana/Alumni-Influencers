@@ -117,6 +117,11 @@ a:hover { text-decoration: underline; }
     transform: translateY(-50%);
     color: var(--text-tertiary);
     font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
 }
 
 .input-wrapper input,
@@ -776,6 +781,13 @@ a:hover { text-decoration: underline; }
 .form-group textarea:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Override: restore left padding when input is inside an .input-wrapper (has icon) */
+.form-group .input-wrapper input,
+.form-group .input-wrapper select,
+.form-group .input-wrapper textarea {
+    padding-left: 42px;
 }
 .form-group textarea {
     min-height: 80px;

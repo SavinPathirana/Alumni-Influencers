@@ -17,13 +17,25 @@
             <i class="bi bi-people"></i>
             <span>Browse Alumni</span>
         </a>
-        <a href="/profile" class="nav-link" id="nav-profile">
+        <a href="/profile" class="nav-link nav-alumni-only" id="nav-profile">
             <i class="bi bi-person"></i>
             <span>My Profile</span>
         </a>
-        <a href="/bidding" class="nav-link" id="nav-bidding">
+        <a href="/bidding" class="nav-link nav-alumni-only" id="nav-bidding">
             <i class="bi bi-lightning"></i>
             <span>Bidding</span>
+        </a>
+        <a href="/sponsorships" class="nav-link nav-alumni-sponsor" id="nav-sponsorships">
+            <i class="bi bi-cash-coin"></i>
+            <span>Sponsorships</span>
+        </a>
+        <a href="/wallet" class="nav-link nav-alumni-only" id="nav-wallet">
+            <i class="bi bi-wallet2"></i>
+            <span>Wallet</span>
+        </a>
+        <a href="/api-keys" class="nav-link nav-admin-only" id="nav-apikeys">
+            <i class="bi bi-key"></i>
+            <span>API Keys</span>
         </a>
         <a href="/api-docs" class="nav-link" id="nav-api" target="_blank">
             <i class="bi bi-code-slash"></i>
@@ -31,9 +43,61 @@
         </a>
     </nav>
     <div class="sidebar-footer">
+        <div class="role-badge" id="roleBadge" style="padding:6px 12px;margin:0 12px 8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-radius:6px;text-align:center;font-weight:600;"></div>
         <button class="nav-link logout-btn" id="logoutBtn">
             <i class="bi bi-box-arrow-left"></i>
             <span>Logout</span>
         </button>
     </div>
 </aside>
+
+<script>
+(function() {
+    //Decode JWT to get user role for sidebar visibility
+    try {
+        const token = localStorage.getItem('token');
+        if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const role = payload.role || 'alumni';
+
+            //Show/hide nav links based on role
+            if (role !== 'alumni') {
+                document.querySelectorAll('.nav-alumni-only').forEach(el => el.style.display = 'none');
+            }
+            if (role !== 'admin') {
+                document.querySelectorAll('.nav-admin-only').forEach(el => el.style.display = 'none');
+            }
+            if (role !== 'alumni' && role !== 'sponsor') {
+                document.querySelectorAll('.nav-alumni-sponsor').forEach(el => el.style.display = 'none');
+            }
+
+            //Display role badge
+            const badge = document.getElementById('roleBadge');
+            if (badge) {
+                badge.textContent = role;
+                if (role === 'admin') {
+                    badge.style.background = 'rgba(239,68,68,0.15)';
+                    badge.style.color = '#ef4444';
+                } else if (role === 'sponsor') {
+                    badge.style.background = 'rgba(168,85,247,0.15)';
+                    badge.style.color = '#a855f7';
+                } else {
+                    badge.style.background = 'rgba(59,130,246,0.15)';
+                    badge.style.color = '#3b82f6';
+                }
+            }
+        }
+    } catch (e) { /* ignore decode errors */ }
+
+    //Logout handler (centralized here so it works on every page)
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    });
+
+    //Sidebar toggle handler
+    document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+    });
+})();
+</script>
