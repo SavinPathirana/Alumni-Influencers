@@ -85,6 +85,13 @@ router.get('/api-keys', (req, res) => {
     });
 });
 
+//Create Sponsor page (admin only — enforced server-side via API)
+router.get('/create-sponsor', (req, res) => {
+    res.render('create-sponsor', {
+        title: 'Create Sponsor — Alumni Influencers'
+    });
+});
+
 //Root redirect to login
 router.get('/', (req, res) => {
     res.redirect('/login');

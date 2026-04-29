@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const { User, Profile } = require('../../models');
+const { User, Profile, Sponsor } = require('../../models');
 const { isValidUniversityEmail, isStrongPassword } = require('../../utils/validators');
 const jwt = require('jsonwebtoken');
 const sendMail = require('../../utils/mailer');
@@ -414,5 +414,103 @@ router.post('/forgot-password', requestPasswordReset);
  *         description: Invalid token or weak password.
  */
 router.post('/reset-password', resetPassword);
+
+//Admin-only: Create a sponsor account
+const authMiddleware = require('../../middlewares/authMiddleware');
+const checkRole = require('../../middlewares/checkRole');
+
+const createSponsor = async (req, res) => {
+    try {
+        const { email, password, sponsor_name, contact_email, total_budget, logo_url } = req.body;
+
+        if (!email || !password || !sponsor_name) {
+            return res.status(400).json({ error: 'Email, password, and sponsor_name are required.' });
+        }
+
+        if (!isStrongPassword(password)) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase, digit, and special character.' });
+        }
+
+        //Check for existing user
+        const existing = await User.findOne({ where: { email: email.toLowerCase() } });
+        if (existing) {
+            return res.status(409).json({ error: 'An account with this email already exists.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        //Create user with sponsor role (pre-verified — admin is creating it)
+        const user = await User.create({
+            email: email.toLowerCase(),
+            password_hash: hashedPassword,
+            role: 'sponsor',
+            is_verified: true
+        });
+
+        //Create linked Sponsor organisation record
+        await Sponsor.create({
+            name: sponsor_name,
+            contact_email: contact_email || email.toLowerCase(),
+            total_budget: total_budget || 0,
+            logo_url: logo_url || null,
+            user_id: user.id
+        });
+
+        res.status(201).json({
+            message: `Sponsor account created for "${sponsor_name}".`,
+            user_id: user.id,
+            email: user.email,
+            role: 'sponsor'
+        });
+
+    } catch (error) {
+        console.error('Create Sponsor Error:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+};
+
+/**
+ * @swagger
+ * /api/auth/create-sponsor:
+ *   post:
+ *     summary: Create a sponsor account (admin only)
+ *     tags: [Authentication]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password, sponsor_name]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: sponsor@company.com
+ *               password:
+ *                 type: string
+ *                 example: Sponsor@2024
+ *               sponsor_name:
+ *                 type: string
+ *                 example: AWS Education
+ *               contact_email:
+ *                 type: string
+ *                 example: partnerships@company.com
+ *               total_budget:
+ *                 type: number
+ *                 example: 10000
+ *               logo_url:
+ *                 type: string
+ *                 example: https://company.com/logo.png
+ *     responses:
+ *       201:
+ *         description: Sponsor account created
+ *       400:
+ *         description: Missing fields or weak password
+ *       409:
+ *         description: Email already exists
+ */
+router.post('/create-sponsor', authMiddleware, checkRole('admin'), createSponsor);
 
 module.exports = router;
