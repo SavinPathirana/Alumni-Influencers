@@ -2,3 +2,6 @@
 .env
 # Node modules
 node_modules/
+# User uploaded files
+uploads/profiles/*
+!uploads/profiles/.gitkeep

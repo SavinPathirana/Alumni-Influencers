@@ -7,6 +7,9 @@
         <div class="top-bar">
             <h2><i class="bi bi-grid-1x2-fill"></i> Analytics Dashboard</h2>
             <div class="top-bar-actions">
+                <button class="btn btn-outline" id="customReportBtn">
+                    <i class="bi bi-clipboard-data"></i> Custom Report
+                </button>
                 <button class="btn btn-outline" id="exportPdfBtn">
                     <i class="bi bi-file-earmark-pdf"></i> Export PDF
                 </button>
@@ -156,6 +159,93 @@
                     <canvas id="geoChart"></canvas>
                 </div>
             </div>
+
+            <!-- 9. Certification Growth Trends (Line) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Certification Growth Trends</h3>
+                    <button class="chart-download" data-chart="certGrowthChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="certGrowthChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 10. Cloud Certification Trends (Stacked Bar) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Cloud Certification Trends</h3>
+                    <button class="chart-download" data-chart="cloudCertsChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="cloudCertsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 11. Emerging Career Pathways (Horizontal Bar) -->
+            <div class="chart-card chart-card-wide">
+                <div class="chart-header">
+                    <h3>Emerging Career Pathways</h3>
+                    <button class="chart-download" data-chart="careerPathwaysChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="careerPathwaysChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 12. Professional Development Trends (Stacked Bar) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Professional Development Trends</h3>
+                    <button class="chart-download" data-chart="profDevChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="profDevChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 13. Agile/Scrum Trends (Line) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Agile/Scrum Adoption Trends</h3>
+                    <button class="chart-download" data-chart="agileTrendsChart" title="Download as PNG">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <canvas id="agileTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Presets -->
+        <div class="content-section" style="margin-top:20px;">
+            <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span><i class="bi bi-bookmark-fill"></i> Filter Presets</span>
+                <button class="btn btn-primary btn-sm" id="savePresetBtn"><i class="bi bi-plus-lg"></i> Save Current</button>
+            </div>
+            <div id="presetsList" style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0;"></div>
+        </div>
+
+        <!-- Custom Report Modal -->
+        <div class="modal-overlay" id="reportModal" style="display:none;">
+            <div class="modal-card" style="max-width:480px;">
+                <button class="modal-close" id="closeReportModal">&times;</button>
+                <h3 style="margin-bottom:12px;">Custom Report</h3>
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Select charts to include in the PDF report:</p>
+                <div id="reportChartList" style="display:flex;flex-direction:column;gap:6px;max-height:350px;overflow-y:auto;"></div>
+                <button class="btn btn-primary" id="generateCustomReport" style="margin-top:16px;width:100%;">
+                    <i class="bi bi-file-earmark-pdf"></i> Generate Report
+                </button>
+            </div>
         </div>
     </main>
 </div>
@@ -173,3 +263,4 @@
 <script src="/js/charts.js"></script>
 </body>
 </html>
+

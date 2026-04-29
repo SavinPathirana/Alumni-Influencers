@@ -37,7 +37,11 @@ module.exports = (sequelize) => {
         tableName: 'bids',
         timestamps: true,
         createdAt: 'created_at',
-        updatedAt: false
+        updatedAt: false,
+        indexes: [
+            { fields: ['target_date', 'status'], name: 'idx_bid_resolution' },
+            { fields: ['user_id', 'status'], name: 'idx_bid_user_status' }
+        ]
     });
 
     return Bid;

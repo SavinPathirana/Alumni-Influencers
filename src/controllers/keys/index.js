@@ -158,6 +158,43 @@ const revokeKey = async (req, res) => {
     }
 };
 
+const renewKey = async (req, res) => {
+    try {
+        const keyId = req.params.id;
+
+        const existingKey = await ApiKey.findOne({ where: { id: keyId } });
+
+        if (!existingKey) {
+            return res.status(404).json({ error: 'API key not found.' });
+        }
+
+        if (!existingKey.is_active) {
+            return res.status(400).json({ error: 'Cannot renew a revoked key. Please generate a new one.' });
+        }
+
+        //Generate a new cryptographically secure key value
+        const newKeyValue = crypto.randomBytes(32).toString('hex');
+
+        //Rotate: update key_value in place (preserves id, client_name, permissions, usage history)
+        await existingKey.update({ key_value: newKeyValue });
+
+        const maskedPreview = newKeyValue.substring(0, 8) + '...' + newKeyValue.slice(-4);
+
+        res.status(200).json({
+            message: 'API key renewed successfully. Store this key securely — it will not be shown again.',
+            key_id: existingKey.id,
+            api_key: newKeyValue,
+            key_preview: maskedPreview,
+            client_name: existingKey.client_name,
+            permissions: existingKey.permissions
+        });
+
+    } catch (error) {
+        console.error('Renew Key Error:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+};
+
 //Routes
 
 /**
@@ -223,6 +260,31 @@ router.get('/', listKeys);
  *         description: Key not found
  */
 router.get('/:id/stats', getKeyStats);
+
+/**
+ * @swagger
+ * /api/keys/{id}/renew:
+ *   put:
+ *     summary: Renew an API key (generates a new key value, preserves metadata and usage history)
+ *     tags: [API Keys]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: API key ID to renew
+ *     responses:
+ *       200:
+ *         description: Key renewed with new value
+ *       400:
+ *         description: Cannot renew a revoked key
+ *       404:
+ *         description: Key not found
+ */
+router.put('/:id/renew', renewKey);
 
 /**
  * @swagger

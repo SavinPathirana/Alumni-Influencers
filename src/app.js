@@ -11,6 +11,7 @@ const swaggerSpec = require('./config/swagger');
 const apiLimiter = require('./middlewares/rateLimiter');
 const requireApiKey = require('./middlewares/apiKeyAuth');
 const errorHandler = require('./middlewares/errorHandler');
+const { generateCsrfToken, validateCsrfToken } = require('./middlewares/csrfProtection');
 
 const app = express();
 
@@ -83,6 +84,8 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api', apiLimiter);
 app.use('/api', requireApiKey);
+app.use('/api', generateCsrfToken);
+app.use('/api', validateCsrfToken);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     swaggerOptions: {

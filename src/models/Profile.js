@@ -58,7 +58,14 @@ module.exports = (sequelize) => {
         }
     }, {
         tableName: 'profiles',
-        timestamps: false
+        timestamps: false,
+        indexes: [
+            { fields: ['programme'] },
+            { fields: ['graduation_date'] },
+            { fields: ['industry_sector'] },
+            { fields: ['location'] },
+            { fields: ['programme', 'graduation_date', 'industry_sector'], name: 'idx_profile_filters' }
+        ]
     });
 
     return Profile;

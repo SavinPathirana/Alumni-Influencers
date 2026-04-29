@@ -60,6 +60,9 @@
                                 <i class="bi bi-bar-chart"></i> Stats
                             </button>
                             ${isActive ? `
+                                <button class="btn btn-renew-key" data-key-id="${key.id}" style="font-size:13px;padding:6px 14px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">
+                                    <i class="bi bi-arrow-repeat"></i> Renew
+                                </button>
                                 <button class="btn btn-revoke-key" data-key-id="${key.id}" style="font-size:13px;padding:6px 14px;background:var(--error);color:#fff;">
                                     <i class="bi bi-x-circle"></i> Revoke
                                 </button>` : ''}
@@ -114,9 +117,10 @@
         }
     });
 
-    //Event delegation for Revoke and Stats buttons
+    //Event delegation for Revoke, Renew, and Stats buttons
     document.getElementById('keysList').addEventListener('click', async (e) => {
         const revokeBtn = e.target.closest('.btn-revoke-key');
+        const renewBtn = e.target.closest('.btn-renew-key');
         const statsBtn = e.target.closest('.btn-stats-key');
 
         if (revokeBtn) {
@@ -133,6 +137,32 @@
                 alert('Error revoking key: ' + error.message);
                 revokeBtn.disabled = false;
                 revokeBtn.innerHTML = '<i class="bi bi-x-circle"></i> Revoke';
+            }
+        }
+
+        if (renewBtn) {
+            if (!confirm('Renew this API key? The old key will stop working immediately and a new key will be generated.')) return;
+            const id = renewBtn.dataset.keyId;
+            renewBtn.disabled = true;
+            renewBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Renewing...';
+            try {
+                const res = await fetch(`/api/keys/${id}/renew`, { method: 'PUT', headers });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                //Show the new key in the display section
+                document.getElementById('newKeyValue').textContent = data.api_key;
+                document.getElementById('newKeyDisplay').style.display = 'block';
+                const successEl = document.getElementById('keySuccess');
+                successEl.textContent = `Key renewed for "${data.client_name}". Copy the new key now!`;
+                successEl.style.display = 'block';
+                document.getElementById('newKeyDisplay').scrollIntoView({ behavior: 'smooth' });
+
+                loadKeys();
+            } catch (error) {
+                alert('Error renewing key: ' + error.message);
+                renewBtn.disabled = false;
+                renewBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Renew';
             }
         }
 

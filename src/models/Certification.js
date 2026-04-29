@@ -25,7 +25,11 @@ module.exports = (sequelize) => {
         }
     }, {
         tableName: 'certifications',
-        timestamps: false
+        timestamps: false,
+        indexes: [
+            { fields: ['completion_date'], name: 'idx_cert_date' },
+            { fields: ['profile_id', 'completion_date'], name: 'idx_cert_profile_date' }
+        ]
     });
 
     return Certification;

@@ -23,7 +23,11 @@ module.exports = (sequelize) => {
         tableName: 'api_usage_logs',
         timestamps: true,
         createdAt: 'timestamp',
-        updatedAt: false
+        updatedAt: false,
+        indexes: [
+            { fields: ['api_key_id', 'timestamp'], name: 'idx_usage_key_time' },
+            { fields: ['endpoint'], name: 'idx_usage_endpoint' }
+        ]
     });
 
     return ApiUsageLog;
