@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    //Load monthly status from API
+    //Load monthly status
     async function loadMonthlyStatus() {
         try {
             const res = await fetch('/api/bidding/monthly-status', { headers });

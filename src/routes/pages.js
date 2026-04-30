@@ -77,7 +77,7 @@ router.get('/wallet', (req, res) => {
     });
 });
 
-//API Keys management page (admin only — enforced server-side via API)
+//API Keys management page (admin only)
 router.get('/api-keys', (req, res) => {
     res.render('api-keys', {
         title: 'API Keys — Alumni Influencers',
@@ -85,7 +85,7 @@ router.get('/api-keys', (req, res) => {
     });
 });
 
-//Create Sponsor page (admin only — enforced server-side via API)
+//Create Sponsor page (admin only)
 router.get('/create-sponsor', (req, res) => {
     res.render('create-sponsor', {
         title: 'Create Sponsor — Alumni Influencers'

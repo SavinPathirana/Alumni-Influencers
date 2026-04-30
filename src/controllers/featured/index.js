@@ -21,7 +21,6 @@ const getTodaysFeatured = async (req, res) => {
         //Find the winning bid for today with eager loaded user and profile
         const wonBid = await Bid.findOne({
             where: { target_date: today, status: 'won' },
-            order: [['bid_amount', 'DESC']],
             include: [{
                 model: User,
                 attributes: ['id', 'email'],

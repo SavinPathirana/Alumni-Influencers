@@ -76,7 +76,7 @@ Alumni-Influencers/
 │   │   ├── checkRole.js        # Role-based access control
 │   │   ├── checkPermission.js  # API key scope enforcement
 │   │   ├── csrfProtection.js   # CSRF token validation
-│   │   ├── rateLimiter.js      # 1500 req/15min per IP
+│   │   ├── rateLimiter.js      # 100 req/15min per IP
 │   │   ├── errorHandler.js     # Centralised error response
 │   │   └── uploadMiddleware.js # Multer image upload config
 │   ├── models/                 # Sequelize models (13 tables)
@@ -91,7 +91,6 @@ Alumni-Influencers/
 │   │   ├── cronJobs.js         # Daily bid resolution + monthly reset
 │   │   ├── mailer.js           # Nodemailer SMTP wrapper
 │   │   ├── validators.js       # Email, password, URL validation
-│   │   └── seedData.js         # 50 alumni + admin + sponsors seed
 │   └── views/                  # EJS templates
 │       ├── dashboard.ejs, alumni.ejs, profile.ejs, bidding.ejs,
 │       ├── login.ejs, register.ejs, verify-email.ejs,
@@ -150,7 +149,7 @@ Client → Helmet/CORS → Rate Limiter → API Key/JWT Auth → CSRF Check → 
 | Helmet.js | CSP, HSTS, X-Frame-Options, X-Content-Type-Options |
 | CORS | Enabled via `cors()` middleware |
 | CSRF | Double-submit token pattern on state-changing routes |
-| Rate Limiting | 1500 requests per 15 minutes per IP via `express-rate-limit` |
+| Rate Limiting | 100 requests per 15 minutes per IP via `express-rate-limit` |
 | XSS Prevention | Strips `<script>`, `javascript:`, inline event handlers from all input |
 | SQL Injection | Sequelize parameterized queries — no raw SQL with user input |
 | Input Validation | University email regex, URL validation, field-level checks |
