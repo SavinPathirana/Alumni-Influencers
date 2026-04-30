@@ -27,19 +27,6 @@ cron.schedule('00 18 * * *', async () => {
         for (let row of datesToResolve) {
             const targetDate = row.target_date;
 
-            //Skip if this date already has a winner (prevents duplicate winners on re-runs)
-            const existingWinner = await Bid.findOne({
-                where: { target_date: targetDate, status: 'won' }
-            });
-            if (existingWinner) {
-                //Mark any remaining pending bids for this date as lost
-                await Bid.update({ status: 'lost' }, {
-                    where: { target_date: targetDate, status: 'pending' }
-                });
-                console.log(`[CRON] Date ${targetDate} already has a winner (bid #${existingWinner.id}). Marked remaining pending bids as lost.`);
-                continue;
-            }
-
             //Get bids for the specific date, highest amount first
             const bids = await Bid.findAll({
                 where: { target_date: targetDate, status: 'pending' },

@@ -270,7 +270,7 @@ const resetPassword = async (req, res) => {
  *             properties:
  *               email:
  *                 type: string
- *                 example: student@my.westminster.ac.uk
+ *                 example: student@my.eastminster.ac.uk
  *               password:
  *                 type: string
  *                 example: Password@123
@@ -331,7 +331,7 @@ router.get('/verify/:token', verifyEmail);
  *             properties:
  *               email:
  *                 type: string
- *                 example: student@my.westminster.ac.uk
+ *                 example: student@my.eastminster.ac.uk
  *               password:
  *                 type: string
  *                 example: Password@123
@@ -376,7 +376,7 @@ router.post('/logout', logout);
  *             properties:
  *               email:
  *                 type: string
- *                 example: student@my.westminster.ac.uk
+ *                 example: student@my.eastminster.ac.uk
  *     responses:
  *       200:
  *         description: Reset link generated if email exists.

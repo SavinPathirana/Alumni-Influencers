@@ -552,7 +552,7 @@ router.get('/me/degrees', getDegrees);
  *                 example: BSc Computer Science
  *               official_url:
  *                 type: string
- *                 example: https://www.westminster.ac.uk/computer-science
+ *                 example: https://www.eastminster.ac.uk/computer-science
  *               completion_date:
  *                 type: string
  *                 format: date

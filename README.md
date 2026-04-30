@@ -2,6 +2,7 @@
 
 **Student:** Savin Pathirana — w1985684 / 20222009  
 **Module:** Advanced Server-Side Web Programming  
+**University:** University of Eastminster  
 **Coursework:** CW1 (Alumni API) + CW2 (University Analytics Dashboard)
 
 ---
@@ -59,8 +60,7 @@ Alumni-Influencers/
 ├── src/
 │   ├── app.js                  # Express application entry point
 │   ├── config/
-│   │   ├── swagger.js          # OpenAPI 3.0 specification
-│   │   └── db.js               # Database config (if present)
+│   │   └── swagger.js          # OpenAPI 3.0 specification
 │   ├── controllers/            # REST API route handlers (auto-mounted)
 │   │   ├── auth/index.js       # Register, login, verify, reset
 │   │   ├── profile/index.js    # Profile + sub-resource CRUD
@@ -76,7 +76,7 @@ Alumni-Influencers/
 │   │   ├── checkRole.js        # Role-based access control
 │   │   ├── checkPermission.js  # API key scope enforcement
 │   │   ├── csrfProtection.js   # CSRF token validation
-│   │   ├── rateLimiter.js      # 1500 req/hour per IP
+│   │   ├── rateLimiter.js      # 1500 req/15min per IP
 │   │   ├── errorHandler.js     # Centralised error response
 │   │   └── uploadMiddleware.js # Multer image upload config
 │   ├── models/                 # Sequelize models (13 tables)
@@ -91,7 +91,7 @@ Alumni-Influencers/
 │   │   ├── cronJobs.js         # Daily bid resolution + monthly reset
 │   │   ├── mailer.js           # Nodemailer SMTP wrapper
 │   │   ├── validators.js       # Email, password, URL validation
-│   │   └── seedData.js         # 30 alumni + admin + sponsors seed
+│   │   └── seedData.js         # 50 alumni + admin + sponsors seed
 │   └── views/                  # EJS templates
 │       ├── dashboard.ejs, alumni.ejs, profile.ejs, bidding.ejs,
 │       ├── login.ejs, register.ejs, verify-email.ejs,
@@ -150,7 +150,7 @@ Client → Helmet/CORS → Rate Limiter → API Key/JWT Auth → CSRF Check → 
 | Helmet.js | CSP, HSTS, X-Frame-Options, X-Content-Type-Options |
 | CORS | Enabled via `cors()` middleware |
 | CSRF | Double-submit token pattern on state-changing routes |
-| Rate Limiting | 1500 requests/hour per IP via `express-rate-limit` |
+| Rate Limiting | 1500 requests per 15 minutes per IP via `express-rate-limit` |
 | XSS Prevention | Strips `<script>`, `javascript:`, inline event handlers from all input |
 | SQL Injection | Sequelize parameterized queries — no raw SQL with user input |
 | Input Validation | University email regex, URL validation, field-level checks |
@@ -201,26 +201,11 @@ cp .env.example .env
 # 5. Start the application (auto-creates tables via Sequelize sync)
 npm run dev
 
-# 6. Seed the database with 30 sample alumni (optional but recommended)
-node src/utils/seedData.js
-
-# 7. Verify the setup
+# 6. Verify the setup
 # - Dashboard:  http://localhost:3000/dashboard
 # - API Docs:   http://localhost:3000/api-docs
 # - Health:     http://localhost:3000/api/health
 ```
-
-### Default Test Accounts (after seeding)
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | `admin@westminster.ac.uk` | `Alumni@2024` |
-| Sponsor | `sponsor.aws@westminster.ac.uk` | `Alumni@2024` |
-| Sponsor | `sponsor.google@westminster.ac.uk` | `Alumni@2024` |
-| Sponsor | `sponsor.cisco@westminster.ac.uk` | `Alumni@2024` |
-| Alumni (×30) | `firstname.lastname@westminster.ac.uk` | `Alumni@2024` |
-
----
 
 ## 8. API Documentation
 
@@ -232,7 +217,7 @@ Key API groups:
 - `Bidding` — place, update, cancel, status, history, monthly-status
 - `API Keys` — generate, list, revoke, renew, usage stats
 - `Featured` — Alumni of the Day (public)
-- `Analytics` — 10+ chart data endpoints with filter support
+- `Analytics` — 13 chart data endpoints with filter support
 - `Sponsorships` — create, accept, reject offers
 - `Wallet` — balance, sponsorship backing
 
@@ -244,7 +229,6 @@ Key API groups:
 |---|---|
 | `npm run dev` | Start with nodemon (auto-restart) |
 | `npm start` | Production start |
-| `node src/utils/seedData.js` | Seed 30 alumni + admin + sponsors |
 
 ---
 
