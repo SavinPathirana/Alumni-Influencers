@@ -228,17 +228,3 @@ Key API groups:
 | `npm start` | Production start |
 
 ---
-
-## 10. Viva Preparation Notes
-
-### Why Monolithic Architecture?
-The coursework specifies CW1 (API) and CW2 (dashboard) as part of the same system. A monolith avoids deployment complexity while keeping API and dashboard tightly integrated. The controller auto-mounting pattern (`lib/boot.js`) provides clean separation of concerns within the monolith.
-
-### Why JWT over Sessions?
-JWT provides stateless authentication suitable for both browser dashboard (via HttpOnly cookies) and API consumers (via Authorization header). The `SameSite=Strict` cookie flag provides CSRF mitigation, supplemented by explicit CSRF tokens for state-changing operations.
-
-### Why Sequelize over Raw SQL?
-Sequelize provides parameterized queries (SQL injection prevention), model validations, association management, and automatic migration via `sync({ alter: true })`. All queries use the ORM — no raw SQL with user input.
-
-### Blind Bidding Design
-Users can only see their own bid and whether they are currently winning (boolean), never the actual highest bid amount. The winner is selected by cron at 18:00 daily to ensure fairness.
