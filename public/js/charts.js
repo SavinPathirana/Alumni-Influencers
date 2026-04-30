@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const employment = (a.employment_history || []).map(e => `${e.role} at ${e.company}`).join(', ') || 'N/A';
 
             container.innerHTML = `
-                <img src="${a.profile_image_url || '/uploads/default.png'}" alt="Featured Alumni"
+                <img src="${a.profile_image_url || '/default-avatar.svg'}" alt="Featured Alumni"
                      style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #f5c542;flex-shrink:0;">
                 <div style="flex:1;min-width:0;">
                     <h3 style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">

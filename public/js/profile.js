@@ -65,9 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('profileName').textContent = name;
             document.getElementById('profileEmail').textContent = '';
 
-            if (p.profile_image_url) {
-                document.getElementById('profileAvatar').src = p.profile_image_url;
-            }
+            document.getElementById('profileAvatar').src = p.profile_image_url || '/default-avatar.svg';
 
             //Load completion
             try {
