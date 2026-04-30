@@ -1,9 +1,7 @@
 # Alumni Influencers Platform
 
 **Student:** Savin Pathirana — w1985684 / 20222009  
-**Module:** Advanced Server-Side Web Programming  
-**University:** University of Eastminster  
-**Coursework:** CW1 (Alumni API) + CW2 (University Analytics Dashboard)
+**Module:** Advanced Server-Side Web Programming 
 
 ---
 
